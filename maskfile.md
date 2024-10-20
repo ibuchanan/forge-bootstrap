@@ -14,32 +14,28 @@ and Node LTS versions via `fnm`
 Requires [`brew`](https://brew.sh/),
 which in turn requires `curl`, `file`, and `git`.
 
-```sh
+```bash
 brew_packages=(
   fnm
   jq
   yq
 )
 brew install ${brew_packages[@]}
-node_lts=(
-  lts/latest
-  lts/iron
-  lts/hydrogen
-)
-fnm install ${node_lts[@]}
 ```
 
 ## update-node-lts
 
 > Update Node LTS versions via `fnm`
 
-```sh
+```bash
 node_lts=(
-  lts/latest
-  lts/iron
-  lts/hydrogen
+  latest
+  iron
+  hydrogen
 )
-fnm install ${node_lts[@]}
+for lts in "${node_lts[@]}"; do
+  fnm install lts/$lts
+done
 ```
 
 ## create-node
@@ -90,7 +86,7 @@ tmp=$(mktemp) && \
 
 > Initialize a `.gitignore` file.
 
-```sh
+```bash
 gitignore=(
   code
   linux
@@ -142,7 +138,7 @@ tmp=$(mktemp) && \
 [TypeScript](https://www.typescriptlang.org/)
 is JavaScript with syntax for types.
 
-```sh
+```bash
 modules=(
   typescript
   @types/node
@@ -180,13 +176,15 @@ yq \
 
 > Initialize the project with Atlassian OSS scaffolding
 
-```sh
+```bash
 files=(
   CODE_OF_CONDUCT.md
   CONTRIBUTING.md
   LICENSE
 )
-cp $MASKFILE_DIR/${files[@]} .
+for file in "${files[@]}"; do
+  cp $MASKFILE_DIR/$file .
+done
 cp -R $MASKFILE_DIR/.atlassian .
 tmp=$(mktemp) && \
   jq \
