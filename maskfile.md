@@ -1,17 +1,17 @@
 # Forge & Node Developer Utilities
 
-Run this file with [Mask](https://github.com/jacobdeichert/mask),
-a CLI task runner defined by a simple markdown file.
-These tasks are for bootstrapping new projects;
-hence, should be run with the `--maskfile` option
+Run this file with [Mask](https://github.com/jacobdeichert/mask), 
+a CLI task runner defined by a simple markdown file. 
+These tasks are for bootstrapping new projects; 
+hence, should be run with the `--maskfile` option 
 from [a different directory](https://github.com/jacobdeichert/mask?tab=readme-ov-file#running-mask-with-a-different-maskfile).
 
 ## prereq
 
-> Install required tools via `brew`
+> Install required tools via `brew` 
 and Node LTS versions via `fnm`
 
-Requires [`brew`](https://brew.sh/),
+Requires [`brew`](https://brew.sh/), 
 which in turn requires `curl`, `file`, and `git`.
 
 ```bash
@@ -36,7 +36,7 @@ cp "$MASKFILE_DIR/.zshrc" "$HOME"
 
 > Setup home directory for managing global npm packages
 
-Better installs than `npm install -g`
+Better installs than `npm install -g` 
 because "global" here persists across node versions
 
 ```sh
@@ -108,6 +108,16 @@ for lts in "${node_lts[@]}"; do
   fnm install lts/$lts
 done
 ```
+
+## update-npm-global
+
+> Update versions of packages in npm-global
+
+```sh
+cd "$HOME/npm-global"
+npm update
+```
+
 
 ## create-node
 
@@ -206,7 +216,7 @@ tmp=$(mktemp) && \
 
 > Initialize TypeScript for a Node project
 
-[TypeScript](https://www.typescriptlang.org/)
+[TypeScript](https://www.typescriptlang.org/) 
 is JavaScript with syntax for types.
 
 ```bash
