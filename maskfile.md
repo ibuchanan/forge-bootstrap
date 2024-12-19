@@ -23,6 +23,77 @@ brew_packages=(
 brew install ${brew_packages[@]}
 ```
 
+## home-init
+
+> Setup shell initialization
+
+```sh
+mv -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
+cp "$MASKFILE_DIR/.zshrc" "$HOME"
+```
+
+## home-npm-global
+
+> Setup home directory for managing global npm packages
+
+Better installs than `npm install -g`
+because "global" here persists across node versions
+
+```sh
+# Path set in 10-env-bin.sh
+mkdir "$HOME/npm-global"
+cd "$HOME/npm-global"
+npm init --yes
+tmp=$(mktemp) && \
+  jq \
+    '.name' |= "npm-global" | '.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+tmp=$(mktemp) && \
+  jq \
+    '.description' |= "A better way to manage global package that supports node version switching" \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+tmp=$(mktemp) && \
+  jq \
+    '.scripts = {}' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+tmp=$(mktemp) && \
+  jq \
+    '.dependencies += { "@forge/cli": "*","knip": "*","tsx": "*" }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+npm install
+```
+
+## home-bin
+
+> Setup home directory path for user-defined scripts
+
+```sh
+# Path set in 10-env-bin.sh
+mkdir "$HOME/bin"
+```
+
+## home-beautification
+
+> Install shell beautification tools via `brew`
+
+Requires [`brew`](https://brew.sh/).
+
+```bash
+brew_packages=(
+  fastfetch
+  starship
+)
+brew install ${brew_packages[@]}
+```
+
 ## update-node-lts
 
 > Update Node LTS versions via `fnm`
@@ -171,6 +242,8 @@ yq \
 ## init-config
 
 > Initialize Node project with standard env var configuration
+
+Not yet implemented.
 
 ## init-oss
 
