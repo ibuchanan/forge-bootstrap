@@ -1,17 +1,17 @@
 # Forge & Node Developer Utilities
 
-Run this file with [Mask](https://github.com/jacobdeichert/mask), 
-a CLI task runner defined by a simple markdown file. 
-These tasks are for bootstrapping new projects; 
-hence, should be run with the `--maskfile` option 
+Run this file with [Mask](https://github.com/jacobdeichert/mask),
+a CLI task runner defined by a simple markdown file.
+These tasks are for bootstrapping new projects;
+hence, should be run with the `--maskfile` option
 from [a different directory](https://github.com/jacobdeichert/mask?tab=readme-ov-file#running-mask-with-a-different-maskfile).
 
 ## prereq
 
-> Install required tools via `brew` 
+> Install required tools via `brew`
 and Node LTS versions via `fnm`
 
-Requires [`brew`](https://brew.sh/), 
+Requires [`brew`](https://brew.sh/),
 which in turn requires `curl`, `file`, and `git`.
 
 ```bash
@@ -36,13 +36,14 @@ cp "$MASKFILE_DIR/.zshrc" "$HOME"
 
 > Setup home directory for managing global npm packages
 
-Better installs than `npm install -g` 
+Better installs than `npm install -g`
 because "global" here persists across node versions
 
 ```sh
 # Path set in 10-env-bin.sh
 mkdir "$HOME/npm-global"
 cd "$HOME/npm-global"
+node --version > .nvmrc
 npm init --yes
 tmp=$(mktemp) && \
   jq \
@@ -64,7 +65,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    '.dependencies += { "@forge/cli": "*","knip": "*","tsx": "*" }' \
+    '.dependencies += { "@forge/cli": "*","knip": "*","tsx": "*", "yarn": "*" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -216,7 +217,7 @@ tmp=$(mktemp) && \
 
 > Initialize TypeScript for a Node project
 
-[TypeScript](https://www.typescriptlang.org/) 
+[TypeScript](https://www.typescriptlang.org/)
 is JavaScript with syntax for types.
 
 ```bash
