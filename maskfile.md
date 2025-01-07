@@ -28,7 +28,7 @@ brew install ${brew_packages[@]}
 > Setup shell initialization
 
 ```sh
-mv -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
+cp -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
 cp "$MASKFILE_DIR/.zshrc" "$HOME"
 ```
 
