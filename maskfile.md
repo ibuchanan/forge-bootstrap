@@ -101,9 +101,10 @@ brew install ${brew_packages[@]}
 
 ```bash
 node_lts=(
-  latest
-  iron
   hydrogen
+  iron
+  jod
+  latest
 )
 for lts in "${node_lts[@]}"; do
   fnm install lts/$lts
