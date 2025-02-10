@@ -278,3 +278,17 @@ tmp=$(mktemp) && \
     > "$tmp" && \
   mv "$tmp" package.json
 ```
+
+## init-rovo
+
+> Initialize Forge project with standard directory structure
+
+```sh
+mkdir prompts
+touch prompts/agent-prompt.md
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules.rovo:agent[].prompt = resource:agent-resource;agent-prompt.md'
+  manifest.md
+```
