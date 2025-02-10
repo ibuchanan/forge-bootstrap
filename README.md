@@ -190,3 +190,7 @@ set the following variable accordingly:
 ```bash
 export FORGE_BOOTSTRAP_HOME="$HOME/dev/git/github.com/ibuchanan/forge-bootstrap"
 ```
+
+### 10. Forge away!
+
+For beginners, start with [Forge Quest](https://developer.atlassian.com/platform/tool/forge-quest/forge-novice/about-forge/)
