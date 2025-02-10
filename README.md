@@ -193,4 +193,14 @@ export FORGE_BOOTSTRAP_HOME="$HOME/dev/git/github.com/ibuchanan/forge-bootstrap"
 
 ### 10. Forge away!
 
-For beginners, start with [Forge Quest](https://developer.atlassian.com/platform/tool/forge-quest/forge-novice/about-forge/)
+You will need a site as a development environment.
+For Atlassians,
+a [One Atlassian](https://hello.atlassian.net/wiki/spaces/ONEATLAS/overview)
+environment is a good start because it has existing data.
+Use [go/one-atlas-request](http://go.atlassian.com/one-atlas-request)
+to provision one automatically.
+Alternatively,
+use [go/cloud-dev](http://go.atlassian.com/cloud-dev).
+
+To start learning about Forge,
+make the [Forge Quest](https://developer.atlassian.com/platform/tool/forge-quest/forge-novice/about-forge/).
