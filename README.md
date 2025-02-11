@@ -41,7 +41,12 @@ please use the [untar anywhere](https://docs.brew.sh/Installation#untar-anywhere
 method of installation.
 
 ```bash
-mkdir homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip-components 1 -C homebrew
+mkdir $HOME/homebrew
+cd $HOME
+curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip-components 1 -C homebrew
+eval "$($HOME/homebrew/bin/brew shellenv)"
+brew update --force --quiet
+chmod -R go-w "$(brew --prefix)/share/zsh"
 ```
 
 You may need to confirm the installation of Xcode CLI tools.
@@ -81,7 +86,7 @@ If you vary from this structure,
 you'll have to modify configuration in a later step.
 
 ```bash
-mkdir -p ~/dev/git/github.com/ibuchanan
+mkdir -p $HOME/dev/git/github.com/ibuchanan
 ```
 
 ### Clone the forge-bootstrap helper
@@ -158,7 +163,7 @@ brew install visual-studio-code
 ### Test
 
 ```bash
-cd ~/dev/git/github.com/ibuchanan/forge-bootstrap
+cd $HOME/dev/git/github.com/ibuchanan/forge-bootstrap
 code .
 ```
 
