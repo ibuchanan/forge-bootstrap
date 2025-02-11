@@ -47,13 +47,13 @@ node --version > .nvmrc
 npm init --yes
 tmp=$(mktemp) && \
   jq \
-    '.name' |= "npm-global" | '.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
+    '.name |= "npm-global" | .version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    '.description' |= "A better way to manage global package that supports node version switching" \
+    '.description |= "A better way to manage global package that supports node version switching"' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
