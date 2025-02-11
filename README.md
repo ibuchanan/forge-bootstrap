@@ -36,9 +36,12 @@ echo $SHELL
 [Homebrew](https://brew.sh/) is,
 "The Missing Package Manager for macOS"
 (and also works on Linux).
+Because Atlassian no longer allows users to be admins on their own machines,
+please use the [untar anywhere](https://docs.brew.sh/Installation#untar-anywhere-unsupported)
+method of installation.
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+mkdir homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip-components 1 -C homebrew
 ```
 
 You may need to confirm the installation of Xcode CLI tools.
