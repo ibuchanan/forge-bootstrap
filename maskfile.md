@@ -297,7 +297,7 @@ yq \
   --inplace \
   --prettyPrint \
   '.modules.rovo:agent[].prompt = resource:agent-resource;agent-prompt.md'
-  manifest.md
+  manifest.yml
 ```
 
 ### repo-init changelog
