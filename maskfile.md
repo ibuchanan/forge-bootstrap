@@ -291,12 +291,17 @@ tmp=$(mktemp) && \
 > Initialize Forge project with standard directory structure
 
 ```sh
-mkdir prompts
+mkdir -p prompts
 touch prompts/agent-prompt.md
 yq \
   --inplace \
   --prettyPrint \
-  '.modules.rovo:agent[].prompt = resource:agent-resource;agent-prompt.md' \
+  '.resources = [{ "key": "agent-prompts", "path": "prompts" }]' \
+  manifest.yml
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules["rovo:agent"][].prompt = "resource:agent-prompts;agent-prompt.md"' \
   manifest.yml
 ```
 
