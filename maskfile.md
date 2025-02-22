@@ -6,24 +6,12 @@ These tasks are for bootstrapping new projects;
 hence, should be run with the `--maskfile` option
 from [a different directory](https://github.com/jacobdeichert/mask?tab=readme-ov-file#running-mask-with-a-different-maskfile).
 
-## prereq
-
-> Install required tools via `brew`
-and Node LTS versions via `fnm`
-
-Requires [`brew`](https://brew.sh/),
-which in turn requires `curl`, `file`, and `git`.
-
-```bash
-brew_packages=(
-  fnm
-  jq
-  yq
-)
-brew install ${brew_packages[@]}
-```
 
 ## home-init
+
+> One-time, global home directory setup
+
+### home-init shell
 
 > Setup shell initialization
 
@@ -32,7 +20,7 @@ cp -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
 cp "$MASKFILE_DIR/.zshrc" "$HOME"
 ```
 
-## home-npm-global
+### home-init npm-global
 
 > Setup home directory for managing global npm packages
 
@@ -72,7 +60,7 @@ tmp=$(mktemp) && \
 npm install
 ```
 
-## home-bin
+### home-init bin
 
 > Setup home directory path for user-defined scripts
 
@@ -81,7 +69,7 @@ npm install
 mkdir "$HOME/bin"
 ```
 
-## home-beautification
+### home-init beautification
 
 > Install shell beautification tools via `brew`
 
@@ -95,7 +83,30 @@ brew_packages=(
 brew install ${brew_packages[@]}
 ```
 
-## update-node-lts
+
+## home-update
+
+> Update global home configuration
+
+### home-update prereq
+
+> Install required tools via `brew`
+and Node LTS versions via `fnm`
+
+Requires [`brew`](https://brew.sh/),
+which in turn requires `curl`, `file`, and `git`.
+
+```bash
+brew_packages=(
+  fnm
+  git-cliff
+  jq
+  yq
+)
+brew install ${brew_packages[@]}
+```
+
+### home-update node-lts
 
 > Update Node LTS versions via `fnm`
 
@@ -111,7 +122,7 @@ for lts in "${node_lts[@]}"; do
 done
 ```
 
-## update-npm-global
+### home-update npm-global
 
 > Update versions of packages in npm-global
 
@@ -121,7 +132,11 @@ npm update
 ```
 
 
-## create-node
+## repo-create
+
+> Create new projects
+
+### repo-create node
 
 > Create a new Node project
 
@@ -137,7 +152,35 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 ```
 
-## init-package
+### repo-create forge
+
+> Create a new Forge project
+
+```sh
+forge create
+```
+
+
+## repo-init
+
+> One-time, post-creation configuration of new projects
+
+### repo-init format-forge
+
+> Format the `manifest.yml` for a freshly created Forge project
+
+```sh
+modules_pick='.modules |= pick( (["rovo:agent"] + keys) | unique)'
+submodules_pick='.modules[][] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
+inputs_pick='.modules.action[].inputs[] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
+yq \
+  --inplace \
+  --prettyPrint \
+  "sort_keys(..) | $modules_pick | $submodules_pick | $inputs_pick" \
+  manifest.yml
+```
+
+### repo-init package
 
 > Initialize default values for `package.json`
 
@@ -150,22 +193,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 ```
 
-## pin-node-version
-
-> Pin the project's Node version to what is currently available
-
-```sh
-node --version > .nvmrc
-tmp=$(mktemp) && \
-  jq \
-    --arg node_version "$(node --version | cut -c2-)" \
-    '.engines = { "node":$node_version }' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-```
-
-## init-gitignore
+### repo-init gitignore
 
 > Initialize a `.gitignore` file.
 
@@ -185,7 +213,7 @@ curl \
   > .gitignore
 ```
 
-## init-biome
+### repo-init biome
 
 > Initialize linting & formatting with Biome
 
@@ -214,7 +242,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 ```
 
-## init-typescript
+### repo-init typescript
 
 > Initialize TypeScript for a Node project
 
@@ -236,28 +264,7 @@ tmp=$(mktemp) && \
 cp $MASKFILE_DIR/tsconfig.json .
 ```
 
-## format-forge
-
-> Initialize a freshly created Forge project
-
-```sh
-modules_pick='.modules |= pick( (["rovo:agent"] + keys) | unique)'
-submodules_pick='.modules[][] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
-inputs_pick='.modules.action[].inputs[] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
-yq \
-  --inplace \
-  --prettyPrint \
-  "sort_keys(..) | $modules_pick | $submodules_pick | $inputs_pick" \
-  manifest.yml
-```
-
-## init-config
-
-> Initialize Node project with standard env var configuration
-
-Not yet implemented.
-
-## init-oss
+### repo-init oss
 
 > Initialize the project with Atlassian OSS scaffolding
 
@@ -279,7 +286,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 ```
 
-## init-rovo
+### repo-init rovo
 
 > Initialize Forge project with standard directory structure
 
@@ -291,4 +298,38 @@ yq \
   --prettyPrint \
   '.modules.rovo:agent[].prompt = resource:agent-resource;agent-prompt.md'
   manifest.md
+```
+
+### repo-init changelog
+
+> Initialize changelog with git-cliff
+
+```sh
+git cliff --init github
+```
+
+### repo-init config
+
+> Initialize Node project with standard env var configuration
+
+Not yet implemented.
+
+
+## repo-update
+
+> Update existing project configurations
+
+### repo-update pin-node-version
+
+> Pin the project's Node version to what is currently available
+
+```sh
+node --version > .nvmrc
+tmp=$(mktemp) && \
+  jq \
+    --arg node_version "$(node --version | cut -c2-)" \
+    '.engines = { "node":$node_version }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
 ```

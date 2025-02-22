@@ -106,10 +106,10 @@ dir $HOME/dev/git/github.com/ibuchanan/forge-bootstrap
 
 In the `forge-bootstrap` dir:
 ```bash
-mask prereq
-mask home-init
-mask home-bin
-mask home-beautification
+mask home-update prereq
+mask home-init shell
+mask home-init bin
+mask home-init beautification
 ```
 
 Restart your shell.
@@ -126,8 +126,8 @@ forge-bootstrap --help
 ## 6. Global Node commands
 
 ```
-forge-bootstrap update-node-lts
-forge-bootstrap home-npm-global
+forge-bootstrap home-update node-lts
+forge-bootstrap home-update npm-global
 ```
 
 Restart your shell.
