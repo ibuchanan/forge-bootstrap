@@ -296,7 +296,7 @@ touch prompts/agent-prompt.md
 yq \
   --inplace \
   --prettyPrint \
-  '.modules.rovo:agent[].prompt = resource:agent-resource;agent-prompt.md'
+  '.modules.rovo:agent[].prompt = resource:agent-resource;agent-prompt.md' \
   manifest.yml
 ```
 
