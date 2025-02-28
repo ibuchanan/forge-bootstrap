@@ -165,6 +165,29 @@ forge create
 
 > One-time, post-creation configuration of new projects
 
+### repo-init defaults
+
+> Default post-creation configuration for Forge Rovo agents
+
+```sh
+echo "biome"
+$MASK biome
+echo "changelog"
+$MASK changelog
+echo "format-forge"
+$MASK format-forge
+echo "gitignore"
+$MASK gitignore
+echo "oss"
+$MASK oss
+echo "package"
+$MASK package
+echo "rovo"
+$MASK rovo
+echo "typescript"
+$MASK typescript
+```
+
 ### repo-init format-forge
 
 > Format the `manifest.yml` for a freshly created Forge project
@@ -277,6 +300,7 @@ files=(
 for file in "${files[@]}"; do
   cp $MASKFILE_DIR/$file .
 done
+touch README.md
 cp -R $MASKFILE_DIR/.atlassian .
 tmp=$(mktemp) && \
   jq \
