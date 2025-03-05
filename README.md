@@ -98,7 +98,7 @@ git clone https://github.com/ibuchanan/forge-bootstrap.git
 ### Test
 
 ```bash
-git —version
+git --version
 dir $HOME/dev/git/github.com/ibuchanan/forge-bootstrap
 ```
 
@@ -135,9 +135,9 @@ Restart your shell.
 ### Test
 
 ```bash
-node —version
+node --version
 fnm ls
-forge —version
+forge --version
 ```
 
 ## 7. Forge Login
