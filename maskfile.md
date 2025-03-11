@@ -15,9 +15,24 @@ from [a different directory](https://github.com/jacobdeichert/mask?tab=readme-ov
 
 > Setup shell initialization
 
-```sh
+```bash
 cp -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
-cp "$MASKFILE_DIR/.zshrc" "$HOME"
+case "$SHELL" in
+  */bash)
+    SHELL_PROFILE_INTERACTIVE=".bash_profile"
+    ;;
+  */zsh)
+    SHELL_PROFILE_INTERACTIVE=".zshrc"
+    ;;
+  *)
+    echo "Unsupported shell: $SHELL"
+    echo "Manually copy the profile.sh to the appropriate shell profile"
+    ;;
+esac
+if [[ -x "$HOME/$SHELL_PROFILE_INTERACTIVE" ]]; then
+  mv "$HOME/$SHELL_PROFILE_INTERACTIVE" "$HOME/$SHELL_PROFILE_INTERACTIVE.old"
+fi
+cp "$MASKFILE_DIR/profile.sh" "$HOME/$SHELL_PROFILE_INTERACTIVE"
 ```
 
 ### home-init npm-global
@@ -170,22 +185,22 @@ forge create
 > Default post-creation configuration for Forge Rovo agents
 
 ```sh
-echo "biome"
-$MASK biome
-echo "changelog"
-$MASK changelog
-echo "format-forge"
-$MASK format-forge
-echo "gitignore"
-$MASK gitignore
-echo "oss"
-$MASK oss
-echo "package"
-$MASK package
-echo "rovo"
-$MASK rovo
-echo "typescript"
-$MASK typescript
+echo "repo-init biome"
+$MASK repo-init biome
+echo "repo-init changelog"
+$MASK repo-init changelog
+echo "repo-init format-forge"
+$MASK repo-init format-forge
+echo "repo-init gitignore"
+$MASK repo-init gitignore
+echo "repo-init oss"
+$MASK repo-init oss
+echo "repo-init package"
+$MASK repo-init package
+echo "repo-init rovo"
+$MASK repo-init rovo
+echo "repo-init typescript"
+$MASK repo-init typescript
 ```
 
 ### repo-init format-forge
