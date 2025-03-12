@@ -109,6 +109,7 @@ In the `forge-bootstrap` dir:
 mask home-update prereq
 mask home-init shell
 mask home-init bin
+mask home-init npm-global
 mask home-init beautification
 ```
 
