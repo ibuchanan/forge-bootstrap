@@ -103,6 +103,17 @@ brew install ${brew_packages[@]}
 
 > Update global home configuration
 
+### home-update defaults
+
+> Default post-creation configuration for Forge Rovo agents
+
+```sh
+echo "home-update node-lts"
+$MASK home-update node-lts
+echo "home-update npm-global"
+$MASK home-update npm-global
+```
+
 ### home-update prereq
 
 > Install required tools via `brew`
