@@ -81,7 +81,7 @@ As such the following is more a matter of configuration.
 
 Over time, you may accumulate many cloned Git repos.
 It helps to have some directory structure to help manage them.
-For now, we only the structure for cloning this repo.
+For now, we only need the structure for cloning this repo.
 If you vary from this structure,
 you'll have to modify configuration in a later step.
 
@@ -92,6 +92,7 @@ mkdir -p $HOME/dev/git/github.com/ibuchanan
 ### Clone the forge-bootstrap helper
 
 ```bash
+cd $HOME/dev/git/github.com/ibuchanan
 git clone https://github.com/ibuchanan/forge-bootstrap.git
 ```
 
