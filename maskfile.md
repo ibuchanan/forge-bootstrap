@@ -146,6 +146,7 @@ node_lts=(
 for lts in "${node_lts[@]}"; do
   fnm install lts/$lts
 done
+fnm default lts/jod
 ```
 
 ### home-update npm-global
