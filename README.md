@@ -127,7 +127,7 @@ forge-bootstrap --help
 
 ## 6. Global Node commands
 
-```
+```bash
 forge-bootstrap home-update node-lts
 forge-bootstrap home-update npm-global
 ```
@@ -201,7 +201,7 @@ set the following variable accordingly:
 export FORGE_BOOTSTRAP_HOME="$HOME/dev/git/github.com/ibuchanan/forge-bootstrap"
 ```
 
-### 10. Forge away!
+## 10. Forge away!
 
 You will need a site as a development environment.
 For Atlassians,
@@ -214,3 +214,79 @@ use [go/cloud-dev](http://go.atlassian.com/cloud-dev).
 
 To start learning about Forge,
 make the [Forge Quest](https://developer.atlassian.com/platform/tool/forge-quest/forge-novice/about-forge/).
+
+## 11. Standard configuration for new Forge Rovo projects
+
+Create new apps with the standard [`forge create`](https://developer.atlassian.com/platform/forge/cli-reference/create/) command.
+Then layer the following into the project:
+* biome: a tool for linting & formatting
+* changelog: use the conventional commit notation and `git-cliff` to help manage versions
+* format-forge: order keys in the manifest for better walk-through explanation
+* gitignore: expand files & directories that will be ignored by git
+* oss: add Atlassian open-source boilerplate
+* package: set better defaults in the `package.json`
+* rovo: move the prompt module into a file
+* typescript: initialize TypeScript for the project
+
+For more details on all these options,
+see the `maskfile.md`.
+Feel free to apply configuration more selectively.
+
+```bash
+forge-bootstrap repo-init defaults
+```
+
+### Test
+
+```bash
+forge lint
+```
+
+
+## 12. Keeping up with changes
+
+From time to time,
+keep the environment configured with latest versions of the tooling.
+
+### Update brew packages
+
+```bash
+brew upgrade
+```
+
+### Test
+
+```bash
+fnm --version
+```
+
+### Update the forge-bootstrap repo
+
+```bash
+cd $FORGE_BOOTSTRAP_HOME
+git pull
+```
+
+### Test
+
+```bash
+forge-bootstrap --version
+```
+
+### Update the home directory tooling
+
+Installs latest LTS versions of Node
+and makes sure global Node libs,
+including Forge,
+are up-to-date.
+
+```bash
+forge-bootstrap home-update defaults
+```
+
+### Test
+
+```bash
+node --version
+forge --version
+```
