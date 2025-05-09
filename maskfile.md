@@ -44,6 +44,7 @@ because "global" here persists across node versions
 
 ```sh
 # Path set in 10-env-bin.sh
+fnm install lts/$lts
 mkdir "$HOME/npm-global"
 cd "$HOME/npm-global"
 node --version > .nvmrc
