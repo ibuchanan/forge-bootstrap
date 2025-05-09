@@ -2,10 +2,17 @@
 # [Homebrew](https://brew.sh/)
 # Install
 # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 if [[ "$(uname)" = "Darwin" ]]; then
+    # MacOS
     BREWCMD=/opt/homebrew/bin/brew
 else
+    # Linux
     BREWCMD=/home/linuxbrew/.linuxbrew/bin/brew
+fi
+if [[ ! -d "$BREWCMD" ]]; then
+    # Alternate install without sudo
+    BREWCMD="$HOME/homebrew/bin/brew"
 fi
 if [[ -x "$(command -v "$BREWCMD")" ]]; then
     eval "$("$BREWCMD" shellenv)"
