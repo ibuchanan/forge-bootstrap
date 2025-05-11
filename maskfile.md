@@ -250,7 +250,7 @@ tmp=$(mktemp) && \
 
 ```bash
 gitignore=(
-  code
+  visualstudiocode
   linux
   macos
   windows
