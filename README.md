@@ -50,8 +50,6 @@ chmod -R go-w "$(brew --prefix)/share/zsh"
 ```
 
 You may need to confirm the installation of Xcode CLI tools.
-Once homebrew is installed,
-restart the shell.
 
 ### Test
 
@@ -115,6 +113,8 @@ mask home-init beautification
 ```
 
 Restart your shell.
+The quickest way is to start a new terminal window
+with Command-N.
 
 ### Test
 
@@ -122,22 +122,19 @@ Upon restart, you should see a pretty shell.
 
 ```bash
 fnm --version
+node --version
 forge-bootstrap --help
 ```
 
 ## 6. Global Node commands
 
 ```bash
-forge-bootstrap home-update node-lts
-forge-bootstrap home-update npm-global
+forge-bootstrap home-update defaults
 ```
-
-Restart your shell.
 
 ### Test
 
 ```bash
-node --version
 fnm ls
 forge --version
 ```

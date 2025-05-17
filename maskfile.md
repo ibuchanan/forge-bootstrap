@@ -43,8 +43,10 @@ Better installs than `npm install -g`
 because "global" here persists across node versions
 
 ```sh
+eval "$(fnm env --use-on-cd)"
+fnm install --lts
+fnm use default
 # Path set in 10-env-bin.sh
-fnm install lts/$lts
 mkdir "$HOME/npm-global"
 cd "$HOME/npm-global"
 node --version > .nvmrc
@@ -93,7 +95,7 @@ Requires [`brew`](https://brew.sh/).
 
 ```bash
 brew_packages=(
-  fastfetch
+  macchina
   starship
 )
 brew install ${brew_packages[@]}
@@ -148,6 +150,7 @@ for lts in "${node_lts[@]}"; do
   fnm install lts/$lts
 done
 fnm default lts/jod
+fnm use default
 ```
 
 ### home-update npm-global
