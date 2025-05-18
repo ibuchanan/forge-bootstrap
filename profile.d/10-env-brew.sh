@@ -10,7 +10,7 @@ else
     # Linux
     BREWCMD=/home/linuxbrew/.linuxbrew/bin/brew
 fi
-if [[ ! -d "$BREWCMD" ]]; then
+if [[ ! -x "$BREWCMD" ]]; then
     # Alternate install without sudo
     BREWCMD="$HOME/homebrew/bin/brew"
 fi
