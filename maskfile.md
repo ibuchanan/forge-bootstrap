@@ -111,6 +111,8 @@ brew install ${brew_packages[@]}
 > Default post-creation configuration for Forge Rovo agents
 
 ```sh
+echo "home-update brew"
+$MASK home-update brew
 echo "home-update node-lts"
 $MASK home-update node-lts
 echo "home-update npm-global"
@@ -135,6 +137,14 @@ brew_packages=(
 brew install ${brew_packages[@]}
 ```
 
+### home-update brew
+
+> Update versions of brew packages with `brew update`.
+
+```bash
+brew update
+```
+
 ### home-update node-lts
 
 > Update Node LTS versions via `fnm`
@@ -155,7 +165,7 @@ fnm use default
 
 ### home-update npm-global
 
-> Update versions of packages in npm-global
+> Update versions of npm packages in npm-global
 
 ```sh
 cd "$HOME/npm-global"
