@@ -15,6 +15,10 @@ from [a different directory](https://github.com/jacobdeichert/mask?tab=readme-ov
 
 > Setup shell initialization
 
+Saves the old shell initialization script with `.old` suffix.
+Copies the standard `profile.sh` to the right script for the shell.
+In effect, this moves all shell initialization to the scripts in `profile.d`.
+
 ```bash
 cp -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
 case "$SHELL" in
@@ -40,7 +44,18 @@ cp "$MASKFILE_DIR/profile.sh" "$HOME/$SHELL_PROFILE_INTERACTIVE"
 > Setup home directory for managing global npm packages
 
 Better installs than `npm install -g`
-because "global" here persists across node versions
+because "global" here persists across managed node versions.
+The libraries we use are:
+* [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
+* [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
+* [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
+* [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
+* [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
+
+Note: `yarn` is used in many Atlassian internal repos and even in some public examples
+(out of habit).
+We prefer `npm` for customer-facing repos
+because it's 1 less thing for new Node developers to learn.
 
 ```sh
 eval "$(fnm env --use-on-cd)"
@@ -71,7 +86,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    '.dependencies += { "@forge/cli": "*","knip": "*","tsx": "*", "yarn": "*" }' \
+    '.dependencies += { "@forge/cli": "*","knip": "*", "promptfoo": "*", "tsx": "*", "yarn": "*" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -91,7 +106,12 @@ mkdir "$HOME/bin"
 
 > Install shell beautification tools via `brew`
 
+These are simply cosmetic
+and aren't strictly required for Forge development.
 Requires [`brew`](https://brew.sh/).
+Beautification adds:
+* [`macchina`](https://github.com/Macchina-CLI/macchina): print system info when starting a new shell
+* [`starship`](https://starship.rs/): a "batteries included" shell prompt
 
 ```bash
 brew_packages=(
@@ -126,6 +146,12 @@ and Node LTS versions via `fnm`
 
 Requires [`brew`](https://brew.sh/),
 which in turn requires `curl`, `file`, and `git`.
+The packages we use are:
+* [`fnm`](https://github.com/Schniz/fnm): install, maintain, and switch between different versions of node.js
+* [`git-cliff`](https://git-cliff.org/): generate changelogs from git commits using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+* [`jq`](https://jqlang.org/): command-line JSON processing used in these scripts
+* [`jq`](https://mikefarah.gitbook.io/yq): command-line YAML processing used in these scripts
+
 
 ```bash
 brew_packages=(
@@ -149,6 +175,9 @@ brew update
 
 > Update Node LTS versions via `fnm`
 
+Manages LTS versions of Node.js
+corresponding to [what's available from Forge](https://developer.atlassian.com/platform/forge/function-reference/nodejs-runtime/).
+
 ```bash
 node_lts=(
   hydrogen
@@ -165,10 +194,37 @@ fnm use default
 
 ### home-update npm-global
 
-> Update versions of npm packages in npm-global
+> Update libraries and versions of npm global packages in npm-global
 
-```sh
+The libraries we use are:
+* [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
+* [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
+* [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
+* [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
+* [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
+
+Note: `yarn` is used in many Atlassian internal repos and even in some public examples
+(out of habit).
+We prefer `npm` for customer-facing repos
+because it's 1 less thing for new Node developers to learn.
+
+```bash
 cd "$HOME/npm-global"
+npm_globals=(
+  @forge/cli
+  knip
+  promptfoo
+  tsx
+  yarn
+)
+for lib in "${npm_globals[@]}"; do
+  tmp=$(mktemp) && \
+    jq \
+      '.dependencies += { "${lib}": "*" }' \
+      package.json \
+      > "$tmp" && \
+    mv "$tmp" package.json
+done
 npm update
 ```
 
@@ -351,13 +407,34 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 ```
 
+### repo-init promptfoo
+
+> Initialize Node project with standard [`promptfoo`](https://www.promptfoo.dev/) configuration
+
+This is compatible with the Rovo configuration (`repo-init rovo`).
+
+```sh
+npm install --save-dev promptfoo
+npx promptfoo init
+cp $MASKFILE_DIR/promptfooconfig.yaml .
+cp -R $MASKFILE_DIR/test .
+mkdir -p prompts
+touch prompts/agent-instructions.md
+tmp=$(mktemp) && \
+  jq \
+    '.scripts += { "eval":"promptfoo eval" }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+```
+
 ### repo-init rovo
 
-> Initialize Forge project with standard directory structure
+> Initialize Forge project with standard prompt configuration
 
 ```sh
 mkdir -p prompts
-touch prompts/agent-prompt.md
+touch prompts/agent-instructions.md
 yq \
   --inplace \
   --prettyPrint \
@@ -366,13 +443,13 @@ yq \
 yq \
   --inplace \
   --prettyPrint \
-  '.modules["rovo:agent"][].prompt = "resource:agent-prompts;agent-prompt.md"' \
+  '.modules["rovo:agent"][].prompt = "resource:agent-prompts;agent-instructions.md"' \
   manifest.yml
 ```
 
 ### repo-init changelog
 
-> Initialize changelog with git-cliff
+> Initialize changelog with [`git-cliff`](https://git-cliff.org/)
 
 ```sh
 git cliff --init github
