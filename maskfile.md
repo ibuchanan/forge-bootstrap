@@ -423,7 +423,7 @@ mkdir -p prompts
 touch prompts/agent-instructions.md
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "eval":"promptfoo eval" }' \
+    '.scripts += { "eval":"promptfoo eval", "view":"promptfoo view" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
