@@ -168,7 +168,7 @@ brew install ${brew_packages[@]}
 > Update versions of brew packages with `brew update`.
 
 ```bash
-brew update
+brew upgrade
 ```
 
 ### home-update node-lts
@@ -220,7 +220,8 @@ npm_globals=(
 for lib in "${npm_globals[@]}"; do
   tmp=$(mktemp) && \
     jq \
-      '.dependencies += { "${lib}": "*" }' \
+      --arg lib "$lib" \
+      '.dependencies += { $lib: "*" }' \
       package.json \
       > "$tmp" && \
     mv "$tmp" package.json
