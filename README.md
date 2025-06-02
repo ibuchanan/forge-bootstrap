@@ -245,18 +245,6 @@ forge lint
 From time to time,
 keep the environment configured with latest versions of the tooling.
 
-### Update brew packages
-
-```bash
-brew upgrade
-```
-
-### Test
-
-```bash
-fnm --version
-```
-
 ### Update the forge-bootstrap repo
 
 ```bash
@@ -272,7 +260,8 @@ forge-bootstrap --version
 
 ### Update the home directory tooling
 
-Installs latest LTS versions of Node
+Upgrades Brew packages,
+installs latest LTS versions of Node,
 and makes sure global Node libs,
 including Forge,
 are up-to-date.
