@@ -1,16 +1,24 @@
-export interface Context {
-  cloudId: string; // The cloud ID.
-  moduleKey: string; // The key identifying the module in the manifest that defines the scheduled trigger function and its frequency.
+import type { CommonEvent } from "./events";
+
+export type Headers = { [key: string]: string[] };
+export type Parameters = { [key: string]: string[] };
+
+export interface FunctionCall {
+  functionKey: string;
 }
 
-export interface Request {
-  context: Context; // Properties identifying this scheduled trigger to Atlassian
-  contextToken: string; // An encoded token used by Atlassian to identify the scheduled trigger invocation. This value has no meaning to an app.
+export interface WebtriggerEvent extends CommonEvent {
+  method: string;
+  call: FunctionCall;
+  headers: Headers;
+  queryParameters: Parameters;
+  body: string;
+  path: string;
 }
 
 export interface Response {
   body: string; // HTTP response body sent back to the caller.
-  headers: { [key: string]: string[] }; // HTTP headers sent by the caller.
+  headers: Headers; // HTTP headers sent by the caller.
   statusCode: number; // HTTP status code returned to the caller.
   // The platform recognizes a status code of 204 as success, and status codes in the 500 series as errors.
   statusText: string; // Text returned to communicate status. The text provides context to the status code.
@@ -29,12 +37,12 @@ function buildResponse(
   };
 }
 
-export async function trigger(req: Request): Promise<Response> {
+export async function trigger(req: WebtriggerEvent): Promise<Response> {
   console.debug(
-    `Context token (invocation identification) for invocation of jira/touch: ${req.contextToken}`,
+    `Context token (invocation identification) for invocation of trigger: ${req.contextToken}`,
   );
   // TODO: wire up to the functions that would be invoked by scheduled triggers
-  const res: Response = buildResponse();
+  const res: Response = buildResponse(req.body);
   console.debug(`response: ${JSON.stringify(res)}`);
   return res;
 }

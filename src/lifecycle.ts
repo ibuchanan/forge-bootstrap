@@ -1,25 +1,33 @@
-export interface App {
-  id: string;
-  version: string;
-  name?: string;
-  ownerAccountId?: string;
-}
+import type { CommonEvent, UniquelyIdentifiedObject } from "./events";
 
-export interface Environment {
-  id: string;
-}
-
-export interface LifecycleEvent {
-  id: string;
+export interface LifecycleEvent extends UniquelyIdentifiedObject, CommonEvent {
   installerAccountId?: string;
   upgraderAccountId?: string;
-  app: App;
-  environment?: Environment;
-  // Undocumented attributes
-  eventType?: string;
 }
 
-export async function lifecycle(event: any, context: any) {
+export interface AppInstallationAri {
+  installationId: string;
+}
+
+export interface AppInstallationContext {
+  cloudId: string;
+  workspaceId: string;
+}
+
+export interface AppInstallation {
+  ari: AppInstallationAri;
+  contexts: ReadonlyArray<AppInstallationContext>;
+}
+
+export interface InstallContext {
+  installContext: string;
+  installation: AppInstallation;
+}
+
+export async function lifecycle(
+  event: LifecycleEvent,
+  context: InstallContext,
+) {
   /*
   According to docs:
   https://developer.atlassian.com/platform/forge/events-reference/life-cycle/
@@ -34,15 +42,16 @@ export async function lifecycle(event: any, context: any) {
       }
   }
   */
-  console.log(`Received app lifecycle event`);
+  console.log("Received app lifecycle event");
   // console.log(`    event: ${JSON.stringify(event)}`);
+  // console.log(`    context: ${JSON.stringify(context)}`);
   const account = event.installerAccountId || event.upgraderAccountId;
-  console.log(`App installed/upgraded`);
+  console.log("App installed/upgraded");
   console.log(`    event type: ${event.eventType}`);
   console.log(`    performed by: ${account}`);
   console.log(`    into cloud id: ${event.context.cloudId}`);
   console.log(`    app version: ${event.app.version}`);
-  console.log(`    installation id: ${event.id}`);
+  console.log(`    app installation id: ${event.id}`);
   // console.log(`Runtime versions ${JSON.stringify(process.versions)}`);
   console.log(`Node.js runtime version ${process.versions.node}`);
 }

@@ -263,6 +263,11 @@ forge create
 
 > One-time, post-creation configuration of new projects
 
+These subcommands are expected to be run only once
+because they are not idempotent.
+Multiple executions may be distructive,
+or duplicative.
+
 ### repo-init defaults
 
 > Default post-creation configuration for Forge Rovo agents
@@ -290,8 +295,8 @@ echo "repo-init lifecycle-trigger"
 $MASK repo-init lifecycle-trigger
 echo "repo-init rovo"
 $MASK repo-init rovo
-echo "repo-init format-forge"
-$MASK repo-init format-forge
+echo "repo-update format-forge"
+$MASK repo-update format-forge
 ```
 
 ### repo-init biome
@@ -317,7 +322,7 @@ tmp=$(mktemp) && \
   mv "$tmp" biome.json
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "check":"check --write", "format":"biome format --write", "lint":"biome lint" }' \
+    '.scripts += { "check":"biome check --write", "format":"biome format --write", "lint":"biome lint" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -329,26 +334,12 @@ tmp=$(mktemp) && \
 
 ```sh
 git cliff --init github
-```
-
-### repo-init format-forge
-
-> Format the `manifest.yml` for a freshly created Forge project
-
-```sh
-modules_pick='.modules |= pick( (["rovo:agent", "action"] + keys - ["function"]) | unique + ["function"])'
-submodules_pick='.modules[][] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
-inputs_pick='.modules.action[].inputs[] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
-yq \
-  --inplace \
-  --prettyPrint \
-  "sort_keys(..) | $modules_pick | $submodules_pick | $inputs_pick" \
-  manifest.yml
-yq \
-  --inplace \
-  --prettyPrint \
-  "del(.. | select(length == 0))" \
-  manifest.yml
+tmp=$(mktemp) && \
+  jq \
+    '.scripts += { "changelog":"git cliff" }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
 ```
 
 ### repo-init gitignore
@@ -474,6 +465,22 @@ tmp=$(mktemp) && \
 cp $MASKFILE_DIR/tsconfig.json .
 ```
 
+### repo-init vitest
+
+> Initialize linting & formatting with Vitest
+
+[Vitest](https://vitest.dev/).
+
+```sh
+npm install --save-dev vitest
+tmp=$(mktemp) && \
+  jq \
+    '.scripts += { "test":"vitest" }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+```
+
 ### repo-init dev-trigger
 
 > Initialize Forge project with webtrigger configuration for testing
@@ -487,9 +494,10 @@ yq \
 yq \
   --inplace \
   --prettyPrint \
-  '.modules.function += [{ "key":"trigger", "function":"index.trigger" }]' \
+  '.modules.function += [{ "key":"trigger", "handler":"index.trigger" }]' \
   manifest.yml
 mkdir -p src
+cp $MASKFILE_DIR/src/events.ts src
 cp $MASKFILE_DIR/src/trigger.ts src
 echo 'export { trigger } from "./trigger";' >> src/index.ts
 ```
@@ -507,9 +515,10 @@ yq \
 yq \
   --inplace \
   --prettyPrint \
-  '.modules.function += [{ "key":"lifecycle-handler", "function":"index.lifecycle" }]' \
+  '.modules.function += [{ "key":"lifecycle-handler", "handler":"index.lifecycle" }]' \
   manifest.yml
 mkdir -p src
+cp $MASKFILE_DIR/src/events.ts src
 cp $MASKFILE_DIR/src/lifecycle.ts src
 echo 'export { lifecycle } from "./lifecycle";' >> src/index.ts
 ```
@@ -524,6 +533,30 @@ Not yet implemented.
 ## repo-update
 
 > Update existing project configurations
+
+These subcommands are expected to be run at regular intervals
+because they are idempotent.
+These commands should not destroy any existing code or configuration.
+
+### repo-update format-forge
+
+> Format the `manifest.yml` for a freshly created Forge project
+
+```sh
+modules_pick='.modules |= pick( (["rovo:agent", "action"] + keys - ["function"]) | unique + ["function"])'
+submodules_pick='.modules[][] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
+inputs_pick='.modules.action[].inputs[] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
+yq \
+  --inplace \
+  --prettyPrint \
+  "sort_keys(..) | $modules_pick | $submodules_pick | $inputs_pick" \
+  manifest.yml
+yq \
+  --inplace \
+  --prettyPrint \
+  "del(.. | select(length == 0))" \
+  manifest.yml
+```
 
 ### repo-update pin-node-version
 
