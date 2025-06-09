@@ -86,7 +86,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    '.dependencies += { "@forge/cli": "*","knip": "*", "promptfoo": "*", "tsx": "*", "yarn": "*" }' \
+    '.dependencies += { "@forge/cli":"*", "knip":"*",  "promptfoo":"*", "tsx":"*", "yarn":"*" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -221,7 +221,7 @@ for lib in "${npm_globals[@]}"; do
   tmp=$(mktemp) && \
     jq \
       --arg lib "$lib" \
-      '.dependencies += { $lib: "*" }' \
+      '.dependencies += { $lib:"*" }' \
       package.json \
       > "$tmp" && \
     mv "$tmp" package.json
@@ -268,70 +268,30 @@ forge create
 > Default post-creation configuration for Forge Rovo agents
 
 ```sh
+echo "## node.js options"
 echo "repo-init biome"
 $MASK repo-init biome
 echo "repo-init changelog"
 $MASK repo-init changelog
-echo "repo-init format-forge"
-$MASK repo-init format-forge
 echo "repo-init gitignore"
 $MASK repo-init gitignore
 echo "repo-init oss"
 $MASK repo-init oss
 echo "repo-init package"
 $MASK repo-init package
-echo "repo-init rovo"
-$MASK repo-init rovo
+echo "repo-init promptfoo"
+$MASK repo-init promptfoo
 echo "repo-init typescript"
 $MASK repo-init typescript
-```
-
-### repo-init format-forge
-
-> Format the `manifest.yml` for a freshly created Forge project
-
-```sh
-modules_pick='.modules |= pick( (["rovo:agent"] + keys) | unique)'
-submodules_pick='.modules[][] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
-inputs_pick='.modules.action[].inputs[] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
-yq \
-  --inplace \
-  --prettyPrint \
-  "sort_keys(..) | $modules_pick | $submodules_pick | $inputs_pick" \
-  manifest.yml
-```
-
-### repo-init package
-
-> Initialize default values for `package.json`
-
-```sh
-tmp=$(mktemp) && \
-  jq \
-    '.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-```
-
-### repo-init gitignore
-
-> Initialize a `.gitignore` file.
-
-```bash
-gitignore=(
-  visualstudiocode
-  linux
-  macos
-  windows
-  node
-)
-query=$(IFS=, ; echo "${gitignore[*]}")
-curl \
-  --silent \
-  --location \
-  https://www.gitignore.io/api/$query \
-  > .gitignore
+echo "## forge options"
+echo "repo-init dev-trigger"
+$MASK repo-init dev-trigger
+echo "repo-init lifecycle-trigger"
+$MASK repo-init lifecycle-trigger
+echo "repo-init rovo"
+$MASK repo-init rovo
+echo "repo-init format-forge"
+$MASK repo-init format-forge
 ```
 
 ### repo-init biome
@@ -357,32 +317,58 @@ tmp=$(mktemp) && \
   mv "$tmp" biome.json
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "check":"check --write","format":"biome format --write","lint":"biome lint" }' \
+    '.scripts += { "check":"check --write", "format":"biome format --write", "lint":"biome lint" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
 ```
 
-### repo-init typescript
+### repo-init changelog
 
-> Initialize TypeScript for a Node project
+> Initialize changelog with [`git-cliff`](https://git-cliff.org/)
 
-[TypeScript](https://www.typescriptlang.org/)
-is JavaScript with syntax for types.
+```sh
+git cliff --init github
+```
+
+### repo-init format-forge
+
+> Format the `manifest.yml` for a freshly created Forge project
+
+```sh
+modules_pick='.modules |= pick( (["rovo:agent", "action"] + keys - ["function"]) | unique + ["function"])'
+submodules_pick='.modules[][] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
+inputs_pick='.modules.action[].inputs[] |= pick( (["key", "name", "title", "description"] + keys) | unique)'
+yq \
+  --inplace \
+  --prettyPrint \
+  "sort_keys(..) | $modules_pick | $submodules_pick | $inputs_pick" \
+  manifest.yml
+yq \
+  --inplace \
+  --prettyPrint \
+  "del(.. | select(length == 0))" \
+  manifest.yml
+```
+
+### repo-init gitignore
+
+> Initialize a `.gitignore` file.
 
 ```bash
-modules=(
-  typescript
-  @types/node
+gitignore=(
+  visualstudiocode
+  linux
+  macos
+  windows
+  node
 )
-npm install --save-dev ${modules[@]}
-tmp=$(mktemp) && \
-  jq \
-    '.scripts += { "build":"tsc","clean":"rm -rf ./dist" }' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-cp $MASKFILE_DIR/tsconfig.json .
+query=$(IFS=, ; echo "${gitignore[*]}")
+curl \
+  --silent \
+  --location \
+  https://www.gitignore.io/api/$query \
+  > .gitignore
 ```
 
 ### repo-init oss
@@ -403,6 +389,19 @@ cp -R $MASKFILE_DIR/.atlassian .
 tmp=$(mktemp) && \
   jq \
     '.license = "Apache-2.0"' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+```
+
+### repo-init package
+
+> Initialize default values for `package.json`
+
+```sh
+tmp=$(mktemp) && \
+  jq \
+    '.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -434,12 +433,17 @@ tmp=$(mktemp) && \
 > Initialize Forge project with standard prompt configuration
 
 ```sh
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules["rovo:agent"] = (.modules["rovo:agent"][] // [{"key": "rovo-agent", "name": "Rovo Agent"}])' \
+  manifest.yml
 mkdir -p prompts
 touch prompts/agent-instructions.md
 yq \
   --inplace \
   --prettyPrint \
-  '.resources = [{ "key": "agent-prompts", "path": "prompts" }]' \
+  '.resources += [{ "key":"agent-prompts", "path":"prompts" }]' \
   manifest.yml
 yq \
   --inplace \
@@ -448,12 +452,66 @@ yq \
   manifest.yml
 ```
 
-### repo-init changelog
+### repo-init typescript
 
-> Initialize changelog with [`git-cliff`](https://git-cliff.org/)
+> Initialize TypeScript for a Node project
+
+[TypeScript](https://www.typescriptlang.org/)
+is JavaScript with syntax for types.
+
+```bash
+modules=(
+  typescript
+  @types/node
+)
+npm install --save-dev ${modules[@]}
+tmp=$(mktemp) && \
+  jq \
+    '.scripts += { "build":"tsc", "clean":"rm -rf ./dist" }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+cp $MASKFILE_DIR/tsconfig.json .
+```
+
+### repo-init dev-trigger
+
+> Initialize Forge project with webtrigger configuration for testing
 
 ```sh
-git cliff --init github
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules.webtrigger += [{ "key":"dev-trigger", "function":"trigger", "response":{ "type":"dynamic" }}]' \
+  manifest.yml
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules.function += [{ "key":"trigger", "function":"index.trigger" }]' \
+  manifest.yml
+mkdir -p src
+cp $MASKFILE_DIR/src/trigger.ts src
+echo 'export { trigger } from "./trigger";' >> src/index.ts
+```
+
+### repo-init lifecycle-trigger
+
+> Initialize Forge project with lifecycle for observability
+
+```sh
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules.trigger += [{ "key":"trigger-lifecycle", "function":"lifecycle-handler", "events":[ "avi:forge:installed:app", "avi:forge:upgraded:app"] }]' \
+  manifest.yml
+yq \
+  --inplace \
+  --prettyPrint \
+  '.modules.function += [{ "key":"lifecycle-handler", "function":"index.lifecycle" }]' \
+  manifest.yml
+mkdir -p src
+cp $MASKFILE_DIR/src/lifecycle.ts src
+echo 'export { lifecycle } from "./lifecycle";' >> src/index.ts
 ```
 
 ### repo-init config
