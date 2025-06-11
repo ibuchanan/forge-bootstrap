@@ -421,7 +421,7 @@ tmp=$(mktemp) && \
 yq \
   --inplace \
   --prettyPrint \
-  '.modules["rovo:agent"] = (.modules["rovo:agent"][] // [{"key": "rovo-agent", "name": "Rovo Agent"}])' \
+  '.modules["rovo:agent"] = (.modules["rovo:agent"] // [{"key": "rovo-agent", "name": "Rovo Agent"}])' \
   manifest.yml
 mkdir -p prompts
 touch prompts/agent-instructions.md
