@@ -276,21 +276,15 @@ or duplicative.
 echo "## node.js options"
 echo "repo-init biome"
 $MASK repo-init biome
-echo "repo-init changelog"
-$MASK repo-init changelog
 echo "repo-init gitignore"
 $MASK repo-init gitignore
 echo "repo-init oss"
 $MASK repo-init oss
 echo "repo-init package"
 $MASK repo-init package
-echo "repo-init promptfoo"
-$MASK repo-init promptfoo
 echo "repo-init typescript"
 $MASK repo-init typescript
 echo "## forge options"
-echo "repo-init dev-trigger"
-$MASK repo-init dev-trigger
 echo "repo-init lifecycle-trigger"
 $MASK repo-init lifecycle-trigger
 echo "repo-init rovo"
