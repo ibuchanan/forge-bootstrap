@@ -268,14 +268,47 @@ because they are not idempotent.
 Multiple executions may be distructive,
 or duplicative.
 
+### repo-init all
+
+> Run all post-creation configuration for Forge Rovo agents
+
+```sh
+echo "## node.js options"
+echo "repo-init biome"
+$MASK repo-init biome
+echo "repo-init changelog"
+$MASK repo-init changelog
+echo "repo-init gitignore"
+$MASK repo-init gitignore
+echo "repo-init oss"
+$MASK repo-init oss
+echo "repo-init package"
+$MASK repo-init package
+echo "repo-init promptfoo"
+$MASK repo-init promptfoo
+echo "repo-init typescript"
+$MASK repo-init typescript
+echo "repo-init vitest"
+$MASK repo-init vitest
+echo "## forge options"
+echo "repo-init dev-trigger"
+$MASK repo-init dev-trigger
+echo "repo-init lifecycle-trigger"
+$MASK repo-init lifecycle-trigger
+echo "repo-init rovo"
+$MASK repo-init rovo
+echo "repo-update format-forge"
+$MASK repo-update format-forge
+echo "repo-update pin-node-version"
+$MASK repo-update pin-node-version
+```
+
 ### repo-init defaults
 
 > Default post-creation configuration for Forge Rovo agents
 
 ```sh
 echo "## node.js options"
-echo "repo-init biome"
-$MASK repo-init biome
 echo "repo-init gitignore"
 $MASK repo-init gitignore
 echo "repo-init oss"
@@ -301,6 +334,7 @@ $MASK repo-update format-forge
 
 ```sh
 npm install --save-dev --save-exact @biomejs/biome
+chmod +x node_modules/@biomejs/cli-darwin-arm64/biome
 npx @biomejs/biome init
 tmp=$(mktemp) && \
   jq \
@@ -387,6 +421,13 @@ tmp=$(mktemp) && \
 tmp=$(mktemp) && \
   jq \
     '.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+tmp=$(mktemp) && \
+  jq \
+    --arg pwd "$PWD" \
+    '.name = "$pwd"' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
