@@ -49,6 +49,7 @@ The libraries we use are:
 * [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
 * [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
 * [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
+* [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
 * [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
@@ -86,7 +87,7 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    '.dependencies += { "@forge/cli":"*", "knip":"*",  "promptfoo":"*", "tsx":"*", "yarn":"*" }' \
+    '.dependencies += { "@forge/cli":"*", "knip":"*",  "promptfoo":"*", "sort-package-json":"*", "tsx":"*", "yarn":"*" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -200,6 +201,7 @@ The libraries we use are:
 * [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
 * [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
 * [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
+* [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
 * [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
@@ -214,6 +216,7 @@ npm_globals=(
   @forge/cli
   knip
   promptfoo
+  sort-package-json
   tsx
   yarn
 )
@@ -426,8 +429,8 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    --arg pwd "$PWD" \
-    '.name = "$pwd"' \
+    --arg name `basename "$(pwd)"` \
+    '.name = $name' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -476,6 +479,24 @@ yq \
   --prettyPrint \
   '.modules["rovo:agent"][].prompt = "resource:agent-prompts;agent-instructions.md"' \
   manifest.yml
+  modules=(
+    @biomejs/biome
+    tsx
+    typescript
+    yaml
+  )
+  npm install --save-dev ${modules[@]}
+tmp=$(mktemp) && \
+  jq \
+    '.scripts += { "actiontypes":"tsx ./scripts/actiontypes.ts && biome format --write" }' \
+    package.json \
+    > "$tmp" && \
+  mv "$tmp" package.json
+cp $MASKFILE_DIR/tsconfig.json .
+mkdir -p src/rovo
+cp $MASKFILE_DIR/src/rovo/action.ts src/rovo
+mkdir -p scripts
+cp $MASKFILE_DIR/scripts/actiontypes.ts scripts
 ```
 
 ### repo-init typescript
@@ -487,6 +508,7 @@ is JavaScript with syntax for types.
 
 ```bash
 modules=(
+  tsx
   typescript
   @types/node
 )
@@ -531,10 +553,10 @@ yq \
   --prettyPrint \
   '.modules.function += [{ "key":"trigger", "handler":"index.trigger" }]' \
   manifest.yml
-mkdir -p src
-cp $MASKFILE_DIR/src/events.ts src
-cp $MASKFILE_DIR/src/trigger.ts src
-echo 'export { trigger } from "./trigger";' >> src/index.ts
+mkdir -p src/forge
+cp $MASKFILE_DIR/src/forge/events.ts src/forge
+cp $MASKFILE_DIR/src/forge/trigger.ts src/forge
+echo 'export { trigger } from "./forge/trigger";' >> src/index.ts
 ```
 
 ### repo-init lifecycle-trigger
@@ -552,10 +574,10 @@ yq \
   --prettyPrint \
   '.modules.function += [{ "key":"lifecycle-handler", "handler":"index.lifecycle" }]' \
   manifest.yml
-mkdir -p src
-cp $MASKFILE_DIR/src/events.ts src
-cp $MASKFILE_DIR/src/lifecycle.ts src
-echo 'export { lifecycle } from "./lifecycle";' >> src/index.ts
+mkdir -p src/forge
+cp $MASKFILE_DIR/src/forge/events.ts src/forge
+cp $MASKFILE_DIR/src/forge/lifecycle.ts src/forge
+echo 'export { lifecycle } from "./forge/lifecycle";' >> src/index.ts
 ```
 
 ### repo-init config
