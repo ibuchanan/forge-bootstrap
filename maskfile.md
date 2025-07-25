@@ -47,14 +47,18 @@ Better installs than `npm install -g`
 because "global" here persists across managed node versions.
 The libraries we use are:
 * [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
+* [`corepack`](https://github.com/nodejs/corepack): Zero-runtime-dependency package acting as bridge between Node projects and their package managers
 * [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
 * [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
 * [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
+* [`turbo`](https://turborepo.com/): the build system for JavaScript and TypeScript codebases (esp monorepos)
 * [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
 Note: `yarn` is used in many Atlassian internal repos and even in some public examples
 (out of habit).
+To install `yarn`, use `yarn set version stable` via `corepack`.
+Then use `yarn init -2` to setup a new repo.
 We prefer `npm` for customer-facing repos
 because it's 1 less thing for new Node developers to learn.
 
@@ -87,7 +91,14 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 tmp=$(mktemp) && \
   jq \
-    '.dependencies += { "@forge/cli":"*", "knip":"*",  "promptfoo":"*", "sort-package-json":"*", "tsx":"*", "yarn":"*" }' \
+    '.dependencies += {
+      "@forge/cli":"*",
+      "corepack":"*",
+      "knip":"*",
+      "promptfoo":"*",
+      "sort-package-json":"*",
+      "tsx":"*",
+      "turbo":"*" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -151,8 +162,7 @@ The packages we use are:
 * [`fnm`](https://github.com/Schniz/fnm): install, maintain, and switch between different versions of node.js
 * [`git-cliff`](https://git-cliff.org/): generate changelogs from git commits using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
 * [`jq`](https://jqlang.org/): command-line JSON processing used in these scripts
-* [`jq`](https://mikefarah.gitbook.io/yq): command-line YAML processing used in these scripts
-
+* [`yq`](https://mikefarah.gitbook.io/yq): command-line YAML processing used in these scripts
 
 ```bash
 brew_packages=(
@@ -199,14 +209,18 @@ fnm use default
 
 The libraries we use are:
 * [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
+* [`corepack`](https://github.com/nodejs/corepack): Zero-runtime-dependency package acting as bridge between Node projects and their package managers
 * [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
 * [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
 * [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
+* [`turbo`](https://turborepo.com/): the build system for JavaScript and TypeScript codebases (esp monorepos)
 * [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
 Note: `yarn` is used in many Atlassian internal repos and even in some public examples
 (out of habit).
+To install `yarn`, use `yarn set version stable` via `corepack`.
+Then use `yarn init -2` to setup a new repo.
 We prefer `npm` for customer-facing repos
 because it's 1 less thing for new Node developers to learn.
 
@@ -214,11 +228,12 @@ because it's 1 less thing for new Node developers to learn.
 cd "$HOME/npm-global"
 npm_globals=(
   @forge/cli
+  corepack
   knip
   promptfoo
   sort-package-json
   tsx
-  yarn
+  turbo
 )
 for lib in "${npm_globals[@]}"; do
   tmp=$(mktemp) && \
