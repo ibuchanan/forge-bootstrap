@@ -399,6 +399,8 @@ gitignore=(
   macos
   windows
   node
+  turbo
+  yarn
 )
 query=$(IFS=, ; echo "${gitignore[*]}")
 curl \
