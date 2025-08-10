@@ -191,7 +191,6 @@ corresponding to [what's available from Forge](https://developer.atlassian.com/p
 
 ```bash
 node_lts=(
-  hydrogen
   iron
   jod
   latest
