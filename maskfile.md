@@ -351,7 +351,6 @@ $MASK repo-update format-forge
 
 ```sh
 npm install --save-dev --save-exact @biomejs/biome
-chmod +x node_modules/@biomejs/cli-darwin-arm64/biome
 npx @biomejs/biome init
 tmp=$(mktemp) && \
   jq \
