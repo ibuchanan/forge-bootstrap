@@ -193,12 +193,13 @@ corresponding to [what's available from Forge](https://developer.atlassian.com/p
 node_lts=(
   iron
   jod
+  krypton
   latest
 )
 for lts in "${node_lts[@]}"; do
   fnm install lts/$lts
 done
-fnm default lts/jod
+fnm default lts/krypton
 fnm use default
 ```
 
