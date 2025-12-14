@@ -5,7 +5,7 @@
     /* Base Options */
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "target": "ES2022",
+    "target": "ES2023",
     "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
@@ -31,6 +31,6 @@
     "types": ["node"],
 
     /* Forge Runtime & UI */
-    "lib": ["ES2022"]
+    "lib": ["ES2023"]
   }
 }
