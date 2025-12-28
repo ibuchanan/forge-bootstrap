@@ -5,17 +5,13 @@ export interface LifecycleEvent extends UniquelyIdentifiedObject, CommonEvent {
   upgraderAccountId?: string;
 }
 
-export interface AppInstallationAri {
-  installationId: string;
-}
-
 export interface AppInstallationContext {
   cloudId: string;
   workspaceId: string;
 }
 
 export interface AppInstallation {
-  ari: AppInstallationAri;
+  ari: { installationId: string };
   contexts: ReadonlyArray<AppInstallationContext>;
 }
 
@@ -26,7 +22,7 @@ export interface InstallContext {
 
 export async function lifecycle(
   event: LifecycleEvent,
-  context: InstallContext,
+  _context: InstallContext,
 ) {
   /*
   According to docs:
@@ -42,16 +38,16 @@ export async function lifecycle(
       }
   }
   */
-  console.log("Received app lifecycle event");
+  console.info("Received app lifecycle event");
   // console.log(`    event: ${JSON.stringify(event)}`);
   // console.log(`    context: ${JSON.stringify(context)}`);
   const account = event.installerAccountId || event.upgraderAccountId;
-  console.log("App installed/upgraded");
-  console.log(`    event type: ${event.eventType}`);
-  console.log(`    performed by: ${account}`);
-  console.log(`    into cloud id: ${event.context.cloudId}`);
-  console.log(`    app version: ${event.app.version}`);
-  console.log(`    app installation id: ${event.id}`);
+  console.info("App installed/upgraded");
+  console.info(`    event type: ${event.eventType}`);
+  console.info(`    performed by: ${account}`);
+  console.info(`    into cloud id: ${event.context.cloudId}`);
+  console.info(`    app version: ${event.app?.version}`);
+  console.info(`    app installation id: ${event.id}`);
   // console.log(`Runtime versions ${JSON.stringify(process.versions)}`);
-  console.log(`Node.js runtime version ${process.versions.node}`);
+  console.info(`Node.js runtime version ${process.versions.node}`);
 }

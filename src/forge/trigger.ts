@@ -1,15 +1,12 @@
 import type { CommonEvent } from "./events";
+import { truncateEvents } from "./logging";
 
 export type Headers = { [key: string]: string[] };
 export type Parameters = { [key: string]: string[] };
 
-export interface FunctionCall {
-  functionKey: string;
-}
-
 export interface WebtriggerEvent extends CommonEvent {
   method: string;
-  call: FunctionCall;
+  call: { functionKey: string };
   headers: Headers;
   queryParameters: Parameters;
   body: string;
@@ -24,7 +21,7 @@ export interface Response {
   statusText: string; // Text returned to communicate status. The text provides context to the status code.
 }
 
-function buildResponse(
+export function buildResponse(
   message = "OK",
   statusCode = 200,
   statusText = "OK",
@@ -39,7 +36,7 @@ function buildResponse(
 
 export async function trigger(req: WebtriggerEvent): Promise<Response> {
   console.debug(
-    `Context token (invocation identification) for invocation of trigger: ${req.contextToken}`,
+    `Context token (invocation identification) for invocation of trigger: ${truncateEvents(req.contextToken)}`,
   );
   // TODO: wire up to the functions that would be invoked by scheduled triggers
   const res: Response = buildResponse(req.body);
