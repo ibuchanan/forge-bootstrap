@@ -308,6 +308,8 @@ echo "repo-init typescript"
 $MASK repo-init typescript
 echo "repo-init vitest"
 $MASK repo-init vitest
+echo "repo-init archunit"
+$MASK repo-init archunit
 echo "## forge options"
 echo "repo-init dev-trigger"
 $MASK repo-init dev-trigger
@@ -540,7 +542,7 @@ cp $MASKFILE_DIR/tsconfig.json .
 
 ### repo-init vitest
 
-> Initialize linting & formatting with Vitest
+> Initialize testing with Vitest
 
 [Vitest](https://vitest.dev/).
 
@@ -552,6 +554,27 @@ tmp=$(mktemp) && \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
+```
+
+### repo-init archunit
+
+> Initialize architectural fitness tests with ArchUnitTS
+
+[ArchUnitTS](https://lukasniessen.github.io/ArchUnitTS/)
+
+With [configuration for Vitest](https://lukasniessen.github.io/ArchUnitTS/#md:vitest)
+
+```sh
+npm install --save-dev archunit
+cat << 'EOF' > vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+    test: {
+        globals: true,
+    },
+});
+EOF
 ```
 
 ### repo-init dev-trigger
