@@ -20,7 +20,7 @@ Copies the standard `profile.sh` to the right script for the shell.
 In effect, this moves all shell initialization to the scripts in `profile.d`.
 
 ```bash
-cp -R "$MASKFILE_DIR/profile.d" "$HOME/profile.d"
+cp -R "$MASKFILE_DIR/src/home-init/shell/profile.d" "$HOME/profile.d"
 case "$SHELL" in
   */bash)
     SHELL_PROFILE_INTERACTIVE=".bash_profile"
@@ -36,7 +36,7 @@ esac
 if [[ -x "$HOME/$SHELL_PROFILE_INTERACTIVE" ]]; then
   mv "$HOME/$SHELL_PROFILE_INTERACTIVE" "$HOME/$SHELL_PROFILE_INTERACTIVE.old"
 fi
-cp "$MASKFILE_DIR/profile.sh" "$HOME/$SHELL_PROFILE_INTERACTIVE"
+cp "$MASKFILE_DIR/src/home-init/shell/profile.sh" "$HOME/$SHELL_PROFILE_INTERACTIVE"
 ```
 
 ### home-init npm-global
