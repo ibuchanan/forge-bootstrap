@@ -346,6 +346,14 @@ echo "repo-update format-forge"
 $MASK repo-update format-forge
 ```
 
+### repo-init aidev
+
+> Initialize repo with skills, agents instructions, etc used by AI coding agents.
+
+```sh
+cp -R $MASKFILE_DIR/repo-init/aidev/AGENTS.md .
+```
+
 ### repo-init biome
 
 > Initialize linting & formatting with Biome
@@ -422,10 +430,10 @@ files=(
   LICENSE
 )
 for file in "${files[@]}"; do
-  cp $MASKFILE_DIR/$file .
+  cp $MASKFILE_DIR/repo-init/oss/$file .
 done
 touch README.md
-cp -R $MASKFILE_DIR/.atlassian .
+cp -R $MASKFILE_DIR/repo-init/oss/.atlassian .
 tmp=$(mktemp) && \
   jq \
     '.license = "Apache-2.0"' \
@@ -463,8 +471,8 @@ This is compatible with the Rovo configuration (`repo-init rovo`).
 ```sh
 npm install --save-dev promptfoo
 npx promptfoo init
-cp $MASKFILE_DIR/promptfooconfig.yaml .
-cp -R $MASKFILE_DIR/test .
+cp $MASKFILE_DIR/repo-init/promptfoo/promptfooconfig.yaml .
+cp -R $MASKFILE_DIR/repo-init/promptfoo/test .
 mkdir -p prompts
 touch prompts/agent-instructions.md
 tmp=$(mktemp) && \
@@ -537,7 +545,7 @@ tmp=$(mktemp) && \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
-cp $MASKFILE_DIR/tsconfig.json .
+cp $MASKFILE_DIR/repo-init/typescript/tsconfig.json .
 ```
 
 ### repo-init vitest
