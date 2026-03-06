@@ -33,10 +33,13 @@ case "$SHELL" in
     echo "Manually copy the profile.sh to the appropriate shell profile"
     ;;
 esac
-if [[ -x "$HOME/$SHELL_PROFILE_INTERACTIVE" ]]; then
-  mv "$HOME/$SHELL_PROFILE_INTERACTIVE" "$HOME/$SHELL_PROFILE_INTERACTIVE.old"
+if [[ -f "$HOME/$SHELL_PROFILE_INTERACTIVE" ]]; then
+  BACKUP_SUFFIX=".backup.$(date +%Y%m%d_%H%M%S)"
+  cp "$HOME/$SHELL_PROFILE_INTERACTIVE" "$HOME/$SHELL_PROFILE_INTERACTIVE.$BACKUP_SUFFIX"
+  if [[ -f "$HOME/$SHELL_PROFILE_INTERACTIVE.$BACKUP_SUFFIX" ]]; then
+    cp "$MASKFILE_DIR/src/home-init/shell/profile.sh" "$HOME/$SHELL_PROFILE_INTERACTIVE"
+  fi
 fi
-cp "$MASKFILE_DIR/src/home-init/shell/profile.sh" "$HOME/$SHELL_PROFILE_INTERACTIVE"
 ```
 
 ### home-init npm-global

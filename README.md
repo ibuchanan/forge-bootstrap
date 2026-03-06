@@ -103,6 +103,10 @@ dir $HOME/dev/git/github.com/ibuchanan/forge-bootstrap
 
 ## 5. Bootstrapping
 
+> [!WARNING]
+> **The following will change your shell!**
+> The commands will backup your existing shell config.
+
 In the `forge-bootstrap` dir:
 ```bash
 mask home-update prereq
