@@ -197,7 +197,7 @@ export FORGE_API_TOKEN=""
 ```
 
 If the git repo was cloned into a different path,
-set the following variable accordingly:
+set the following variable in `~/profile.d/92-shell-forge`:
 ```bash
 export FORGE_BOOTSTRAP_HOME="$HOME/dev/git/github.com/ibuchanan/forge-bootstrap"
 ```
