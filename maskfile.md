@@ -20,7 +20,8 @@ Copies the standard `profile.sh` to the right script for the shell.
 In effect, this moves all shell initialization to the scripts in `profile.d`.
 
 ```bash
-cp -R "$MASKFILE_DIR/src/home-init/shell/profile.d" "$HOME/profile.d"
+mkdir -p "$HOME/profile.d"
+cp "$MASKFILE_DIR/src/home-init/shell/profile.d/*" "$HOME/profile.d"
 case "$SHELL" in
   */bash)
     SHELL_PROFILE_INTERACTIVE=".bash_profile"
