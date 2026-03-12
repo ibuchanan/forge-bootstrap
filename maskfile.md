@@ -329,7 +329,7 @@ $MASK repo-update pin-node-version
 
 ### repo-init defaults
 
-> Default post-creation configuration for Forge Rovo agents
+> Default post-creation configuration for typical Forge apps
 
 ```sh
 echo "## node.js options"
@@ -344,8 +344,6 @@ $MASK repo-init typescript
 echo "## forge options"
 echo "repo-init lifecycle-trigger"
 $MASK repo-init lifecycle-trigger
-echo "repo-init rovo"
-$MASK repo-init rovo
 echo "repo-update format-forge"
 $MASK repo-update format-forge
 ```
@@ -533,11 +531,17 @@ cp $MASKFILE_DIR/scripts/actiontypes.ts scripts
 
 > Initialize TypeScript for a Node project
 
-[TypeScript](https://www.typescriptlang.org/)
+* [TypeScript](https://www.typescriptlang.org/)
 is JavaScript with syntax for types.
+* [`tsx`](https://tsx.is/)
+runs TypeScript code without configuration or compilation.
+* [openapi-typescript](https://openapi-ts.dev/)
+is a library for converting OpenAPI 3.0/3.1 schemas to TypeScript types 
+and type-safe fetching.
 
 ```bash
 modules=(
+  openapi-typescript
   tsx
   typescript
   @types/node
@@ -545,11 +549,12 @@ modules=(
 npm install --save-dev ${modules[@]}
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "build":"tsc", "clean":"rm -rf ./dist" }' \
+    '.scripts += { "build":"tsc", "clean":"rm -rf ./dist", "api-types":"npx openapi-typescript" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
 cp $MASKFILE_DIR/src/repo-init/typescript/tsconfig.json .
+cp $MASKFILE_DIR/src/repo-init/typescript/redocly.yaml .
 ```
 
 ### repo-init vitest

@@ -1,0 +1,41 @@
+# TODO: Remove APIs you don't need
+# TODO: `npm run api-types`
+# TODO: Import types where needed
+# https://openapi-ts.dev/introduction
+apis:
+  api-access:
+    root: https://developer.atlassian.com/cloud/admin/api-access/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/api-access/types.ts
+  assets:
+    root: https://developer.atlassian.com/cloud/assets/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/assets/types.ts
+  bitbucket:
+    root: https://dac-static.atlassian.com/cloud/bitbucket/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/bitbucket/types.ts
+  confluence-1:
+    root: https://developer.atlassian.com/cloud/confluence/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/confluence-1/types.ts
+  confluence-2:
+    root: https://dac-static.atlassian.com/cloud/confluence/openapi-v2.v3.json
+    x-openapi-ts:
+      output: ./src/confluence-2/types.ts
+  jira-platform-2:
+    root: https://dac-static.atlassian.com/cloud/jira/platform/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/jira-platform-2/types.ts
+  jira-platform-3:
+    root: https://dac-static.atlassian.com/cloud/jira/platform/swagger-v3.v3.json
+    x-openapi-ts:
+      output: ./src/jira-platform-3/types.ts
+  jira-servicedesk:
+    root: https://developer.atlassian.com/cloud/jira/service-desk/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/jira-servicedesk/types.ts
+  jira-software:
+    root: https://developer.atlassian.com/cloud/jira/software/swagger.v3.json
+    x-openapi-ts:
+      output: ./src/jira-software/types.ts
