@@ -310,10 +310,8 @@ echo "repo-init promptfoo"
 $MASK repo-init promptfoo
 echo "repo-init typescript"
 $MASK repo-init typescript
-echo "repo-init vitest"
-$MASK repo-init vitest
-echo "repo-init archunit"
-$MASK repo-init archunit
+echo "repo-init test"
+$MASK repo-init test
 echo "## forge options"
 echo "repo-init dev-trigger"
 $MASK repo-init dev-trigger
@@ -557,32 +555,27 @@ cp $MASKFILE_DIR/src/repo-init/typescript/tsconfig.json .
 cp $MASKFILE_DIR/src/repo-init/typescript/redocly.yaml .
 ```
 
-### repo-init vitest
+### repo-init test
 
-> Initialize testing with Vitest
+> Initialize testing with Vitest, ArchUnitTS, and initial Forge tests
 
-[Vitest](https://vitest.dev/).
+* [Vitest](https://vitest.dev/)
+* [ArchUnitTS](https://lukasniessen.github.io/ArchUnitTS/)
+
+With [configuration for Vitest](https://lukasniessen.github.io/ArchUnitTS/#md:vitest)
 
 ```sh
-npm install --save-dev vitest
+modules=(
+  vitest
+  archunit
+)
+npm install --save-dev ${modules[@]}
 tmp=$(mktemp) && \
   jq \
     '.scripts += { "test":"vitest" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
-```
-
-### repo-init archunit
-
-> Initialize architectural fitness tests with ArchUnitTS
-
-[ArchUnitTS](https://lukasniessen.github.io/ArchUnitTS/)
-
-With [configuration for Vitest](https://lukasniessen.github.io/ArchUnitTS/#md:vitest)
-
-```sh
-npm install --save-dev archunit
 cat << 'EOF' > vitest.config.ts
 import { defineConfig } from 'vitest/config';
 
@@ -592,6 +585,7 @@ export default defineConfig({
     },
 });
 EOF
+cp -R $MASKFILE_DIR/src/repo-init/tests tests
 ```
 
 ### repo-init dev-trigger
