@@ -296,6 +296,8 @@ or duplicative.
 
 ```sh
 echo "## node.js options"
+echo "repo-init aidev"
+$MASK repo-init aidev
 echo "repo-init biome"
 $MASK repo-init biome
 echo "repo-init changelog"
@@ -331,6 +333,8 @@ $MASK repo-update pin-node-version
 
 ```sh
 echo "## node.js options"
+echo "repo-init aidev"
+$MASK repo-init aidev
 echo "repo-init gitignore"
 $MASK repo-init gitignore
 echo "repo-init oss"
