@@ -422,6 +422,95 @@ export function getImportedNames(
  * Check if a function name is exported from a source file
  * Handles named exports, re-exports, and aliased exports
  */
+export function findLocalImports(sourceFile: ts.SourceFile): string[] {
+  return findImports(sourceFile)
+    .map((entry) => entry.source)
+    .filter((source) => source.startsWith("./") || source.startsWith("../"));
+}
+
+export function findCallExpressions(
+  sourceFile: ts.SourceFile,
+  predicate: (callName: string, node: ts.CallExpression) => boolean,
+): Array<{ node: ts.CallExpression; line: number; column: number }> {
+  const results: Array<{
+    node: ts.CallExpression;
+    line: number;
+    column: number;
+  }> = [];
+
+  function getCallName(expression: ts.Expression): string | null {
+    if (ts.isIdentifier(expression)) {
+      return expression.text;
+    }
+    if (ts.isPropertyAccessExpression(expression)) {
+      return expression.name.text;
+    }
+    return null;
+  }
+
+  function visit(node: ts.Node) {
+    if (ts.isCallExpression(node)) {
+      const callName = getCallName(node.expression);
+      if (callName && predicate(callName, node)) {
+        results.push({
+          node,
+          line: getLineNumber(sourceFile, node),
+          column: getColumnNumber(sourceFile, node),
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return results;
+}
+
+export function findExportedNames(sourceFile: ts.SourceFile): Set<string> {
+  const results = new Set<string>();
+
+  for (const statement of sourceFile.statements) {
+    if (ts.isExportDeclaration(statement)) {
+      const exportClause = statement.exportClause;
+      if (exportClause && ts.isNamedExports(exportClause)) {
+        for (const element of exportClause.elements) {
+          results.add(element.name.text);
+        }
+      }
+      continue;
+    }
+
+    const isExported = Boolean(
+      ts.getCombinedModifierFlags(statement as ts.Declaration) &
+        ts.ModifierFlags.Export,
+    );
+
+    if (!isExported) {
+      continue;
+    }
+
+    if (ts.isFunctionDeclaration(statement) && statement.name) {
+      results.add(statement.name.text);
+      continue;
+    }
+
+    if (ts.isClassDeclaration(statement) && statement.name) {
+      results.add(statement.name.text);
+      continue;
+    }
+
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (ts.isIdentifier(declaration.name)) {
+          results.add(declaration.name.text);
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
 export function isFunctionExported(
   sourceFile: ts.SourceFile,
   functionName: string,
@@ -472,4 +561,202 @@ export function isFunctionExported(
 
   visit(sourceFile);
   return isExported;
+}
+
+/**
+ * Find all queue keys instantiated via `new Queue({ key: ... })` where Queue
+ * is imported from `@forge/events`.
+ */
+export function findForgeQueueKeys(sourceFile: ts.SourceFile): Array<{
+  key: string;
+  line: number;
+  column: number;
+}> {
+  const queueImportNames = new Set<string>();
+  const results: Array<{
+    key: string;
+    line: number;
+    column: number;
+  }> = [];
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) {
+      continue;
+    }
+
+    if (!ts.isStringLiteral(statement.moduleSpecifier)) {
+      continue;
+    }
+
+    if (statement.moduleSpecifier.text !== "@forge/events") {
+      continue;
+    }
+
+    const importClause = statement.importClause;
+    const namedBindings = importClause?.namedBindings;
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) {
+      continue;
+    }
+
+    for (const element of namedBindings.elements) {
+      if (element.propertyName?.text === "Queue") {
+        queueImportNames.add(element.name.text);
+      } else if (!element.propertyName && element.name.text === "Queue") {
+        queueImportNames.add("Queue");
+      }
+    }
+  }
+
+  function visit(node: ts.Node) {
+    if (
+      ts.isNewExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      queueImportNames.has(node.expression.text)
+    ) {
+      const [firstArg] = node.arguments || [];
+      if (firstArg && ts.isObjectLiteralExpression(firstArg)) {
+        const keyProperty = firstArg.properties.find(
+          (property): property is ts.PropertyAssignment =>
+            ts.isPropertyAssignment(property) &&
+            ((ts.isIdentifier(property.name) && property.name.text === "key") ||
+              (ts.isStringLiteral(property.name) &&
+                property.name.text === "key")),
+        );
+
+        if (keyProperty && ts.isStringLiteral(keyProperty.initializer)) {
+          results.push({
+            key: keyProperty.initializer.text,
+            line: getLineNumber(sourceFile, keyProperty.initializer),
+            column: getColumnNumber(sourceFile, keyProperty.initializer),
+          });
+        }
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return results;
+}
+
+// ============================================================================
+// API Usage Validation Utilities
+// ============================================================================
+
+/**
+ * Scan a file for API usage violations.
+ * Checks for:
+ * - Absolute URLs passed to requestJira/requestConfluence/requestBitbucket
+ * - Absolute URLs passed to assumeTrustedRoute
+ * - Missing route templates or assumeTrustedRoute
+ *
+ * @param filePath - Path to the TypeScript file to scan
+ * @returns Array of violation descriptions
+ */
+export function scanFileForApiViolations(filePath: string): string[] {
+  const sourceFile = parseSourceFile(filePath);
+  const violations: string[] = [];
+
+  function visit(node: ts.Node) {
+    if (ts.isCallExpression(node) && isApiRequestCall(node)) {
+      checkRequestJiraArguments(sourceFile, node, violations);
+    }
+
+    if (ts.isCallExpression(node) && isAssumeTrustedRouteCall(node)) {
+      checkAssumeTrustedRouteArgument(sourceFile, node, violations);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return violations;
+}
+
+/**
+ * Check assumeTrustedRoute call arguments for absolute URLs
+ *
+ * @param sourceFile - The parsed source file
+ * @param node - The call expression node
+ * @param violations - Array to accumulate violation messages
+ */
+export function checkAssumeTrustedRouteArgument(
+  sourceFile: ts.SourceFile,
+  node: ts.CallExpression,
+  violations: string[],
+): void {
+  const innerArg = getFirstArgument(node);
+  if (!innerArg) {
+    return;
+  }
+
+  const literalText = getLiteralText(innerArg);
+  if (literalText && isAbsoluteUrl(literalText)) {
+    violations.push(
+      `assumeTrustedRoute should not be called with absolute URLs. ${describeCallsite(sourceFile, node)}`,
+    );
+  }
+
+  if (ts.isCallExpression(innerArg)) {
+    const innerLiteral = getLiteralText(innerArg);
+    if (innerLiteral && isAbsoluteUrl(innerLiteral)) {
+      violations.push(
+        `assumeTrustedRoute should receive a relative path. ${describeCallsite(sourceFile, node)}`,
+      );
+    }
+  }
+}
+
+/**
+ * Check requestJira/requestConfluence call arguments for absolute URLs
+ *
+ * @param sourceFile - The parsed source file
+ * @param node - The call expression node
+ * @param violations - Array to accumulate violation messages
+ */
+export function checkRequestJiraArguments(
+  sourceFile: ts.SourceFile,
+  node: ts.CallExpression,
+  violations: string[],
+): void {
+  const firstArg = getFirstArgument(node);
+  if (!firstArg) {
+    return;
+  }
+
+  if (ts.isCallExpression(firstArg) && isAssumeTrustedRouteCall(firstArg)) {
+    checkAssumeTrustedRouteArgument(sourceFile, firstArg, violations);
+    return;
+  }
+
+  if (isRouteTemplateExpression(firstArg)) {
+    return;
+  }
+
+  const literalText = getLiteralText(firstArg);
+  if (literalText && isAbsoluteUrl(literalText)) {
+    const methodName = ts.isPropertyAccessExpression(node.expression)
+      ? node.expression.name.text
+      : ts.isIdentifier(node.expression)
+        ? node.expression.text
+        : "API request";
+    violations.push(
+      `${methodName} should not be called with absolute URLs. ${describeCallsite(sourceFile, node)}`,
+    );
+  }
+}
+
+/**
+ * Format a callsite for error messages with line number and context
+ *
+ * @param sourceFile - The parsed source file
+ * @param node - The AST node
+ * @returns Formatted string with line number and code context
+ */
+export function describeCallsite(
+  sourceFile: ts.SourceFile,
+  node: ts.CallExpression,
+): string {
+  return `Line ${getLineNumber(sourceFile, node)}\n${getNodeContext(sourceFile, node)}`;
 }

@@ -5,16 +5,24 @@
  * - Transitive dependency rules: Resolvers shouldn't import modules that depend on @forge/bridge
  * - General separation of concerns between frontend and backend
  * - Circular dependency prevention
- * - Storage API boundaries: Frontend cannot access Forge storage APIs (must use REST APIs)
+ * - Runtime boundary checks for fetch and storage usage
  *
- * @see {@link https://developer.atlassian.com/platform/forge/runtime-reference/forge-resolver/|Forge Resolver}
- * @see {@link https://developer.atlassian.com/platform/forge/runtime-reference/forge-bridge/|Forge Bridge}
+ * @see {@link https://developer.atlassian.com/platform/forge/runtime-reference/forge-resolver/|Forge resolver}
+ * @see {@link https://developer.atlassian.com/platform/forge/apis-reference/ui-api-bridge/bridge/|Forge bridge}
+ * @see {@link https://developer.atlassian.com/platform/forge/runtime-reference/fetch-api/|Fetch API}
  * @see {@link https://developer.atlassian.com/platform/forge/runtime-reference/storage-api/|Storage API}
- * @see {@link https://developer.atlassian.com/platform/forge/add-content-security-and-egress-controls/|Permissions & Security}
+ * @see {@link https://developer.atlassian.com/platform/forge/add-content-security-and-egress-controls/|Permissions and security}
  */
 
 import { type ProjectFiles, projectFiles } from "archunit";
+import ts from "typescript";
 import { beforeAll, describe, expect, it } from "vitest";
+import {
+  findCallExpressions,
+  findImports,
+  findLocalImports,
+  parseSourceFile,
+} from "./ast-helpers";
 
 describe("Forge Architecture", () => {
   // Cache projectFiles() result to speed up tests
@@ -34,8 +42,7 @@ describe("Forge Architecture", () => {
         .inFolder("src/frontend/**")
         .should()
         .adhereTo((file) => {
-          // Check if frontend imports any local modules (relative paths)
-          const importedModules = extractLocalImports(file.content);
+          const importedModules = findLocalImports(parseSourceFile(file.path));
 
           // Frontend should only import from itself or shared UI utilities
           // Any import that goes up to parent directories could import backend code
@@ -64,8 +71,7 @@ describe("Forge Architecture", () => {
         .inFolder("src/resolvers/**")
         .should()
         .adhereTo((file) => {
-          // Check if resolvers import from frontend directory
-          const importedModules = extractLocalImports(file.content);
+          const importedModules = findLocalImports(parseSourceFile(file.path));
 
           for (const importedModule of importedModules) {
             // Resolvers should never import from frontend
@@ -132,22 +138,25 @@ describe("Forge Architecture", () => {
         .inFolder("src/{resolvers,external,import-lifecycle}/**")
         .should()
         .adhereTo((file) => {
-          const content = file.content;
-
-          // Skip test files
           if (file.path.includes(".test.") || file.path.includes(".spec.")) {
             return true;
           }
 
-          // Check if file makes HTTP calls using native fetch()
-          // Pattern: "await fetch(" or "fetch(" not preceded by "api."
-          const nativeFetchPattern = /(?<!api\.)fetch\s*\(/g;
+          const sourceFile = parseSourceFile(file.path);
+          const nativeFetchCalls = findCallExpressions(
+            sourceFile,
+            (callName, node) => {
+              if (callName !== "fetch") {
+                return false;
+              }
+              return !(
+                ts.isPropertyAccessExpression(node.expression) &&
+                node.expression.expression.getText(sourceFile) === "api"
+              );
+            },
+          );
 
-          if (nativeFetchPattern.test(content)) {
-            return false;
-          }
-
-          return true;
+          return nativeFetchCalls.length === 0;
         }, "Backend code should use api.fetch() from @forge/api for external HTTP calls, not native fetch()");
 
       await expect(rule).toPassAsync();
@@ -164,43 +173,14 @@ describe("Forge Architecture", () => {
         .inFolder("src/frontend/**")
         .should()
         .adhereTo((file) => {
-          const content = file.content;
+          const sourceFile = parseSourceFile(file.path);
+          const forgeApiImports = findImports(sourceFile, "@forge/api");
+          const forgeKvsImports = findImports(sourceFile, "@forge/kvs");
 
-          // Check for forbidden Forge storage API patterns
-          const forbiddenPatterns = [
-            /storage\./,
-            /Storage\./,
-            /@forge\/api.*storage/,
-            /from\s+["']@forge\/api["']/,
-          ];
-
-          for (const pattern of forbiddenPatterns) {
-            if (pattern.test(content)) {
-              return false;
-            }
-          }
-
-          return true;
+          return forgeApiImports.length === 0 && forgeKvsImports.length === 0;
         }, "Frontend should not access Forge storage APIs (@forge/api storage, Forge SQL, KV, Custom Entities)");
 
       await expect(rule).toPassAsync();
     });
   });
 });
-
-/**
- * Helper function to extract local import paths from file content
- * Returns an array of relative import paths like "../assets", "./types", etc.
- */
-function extractLocalImports(content: string): string[] {
-  const imports: string[] = [];
-  const importRegex = /from\s+['"](\.{1,2}\/[^'"]+)['"]/g;
-
-  let match: RegExpExecArray | null = importRegex.exec(content);
-  while (match !== null) {
-    imports.push(match[1]);
-    match = importRegex.exec(content);
-  }
-
-  return imports;
-}

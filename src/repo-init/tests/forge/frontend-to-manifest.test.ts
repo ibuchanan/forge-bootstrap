@@ -2,14 +2,15 @@
  * Frontend-to-Manifest validation tests
  *
  * Validates the contract between frontend code and manifest declarations:
- * - All frontend invoke() calls correspond to manifest-declared functions
- * - Manifest handlers have matching exports in src/index.ts
+ * - All frontend invoke() calls correspond to manifest-declared functions or resolver definitions
+ * - Manifest handlers have matching exports in backend entry points
  * - Handler functions follow correct export patterns
  * - Queue consumers and extensions are properly declared
  * - Module resolver configuration is correct
  *
- * @see {@link https://developer.atlassian.com/platform/forge/manifest/|Forge Manifest}
- * @see {@link https://developer.atlassian.com/platform/forge/custom-ui-bridge-api/|Custom UI Bridge API}
+ * @see {@link https://developer.atlassian.com/platform/forge/manifest-reference/|Manifest reference}
+ * @see {@link https://developer.atlassian.com/platform/forge/apis-reference/ui-api-bridge/invoke/|Forge bridge invoke}
+ * @see {@link https://developer.atlassian.com/platform/forge/runtime-reference/forge-resolver/|Forge resolver}
  */
 
 import { join } from "node:path";
@@ -17,6 +18,7 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { getLineNumber, parseSourceFile } from "./ast-helpers";
+import { getAllTypeScriptFiles } from "./filesystem-helpers";
 import {
   getModuleResolvers,
   getProjectPaths,
@@ -190,10 +192,13 @@ describe("Frontend Invoke Validation", () => {
     const resolversPath = join(projectRoot, "src/resolvers/index.ts");
     const resolversSource = parseSourceFile(resolversPath);
 
-    // Get invoked functions from frontend
-    const frontendPath = join(projectRoot, "src/frontend/index.tsx");
-    const frontendSource = parseSourceFile(frontendPath);
-    const invokeCalls = findInvokeCalls(frontendSource);
+    // Get invoked functions from all frontend files
+    const frontendFiles = getAllTypeScriptFiles(
+      join(projectRoot, "src/frontend"),
+    );
+    const invokeCalls = frontendFiles.flatMap((frontendPath) =>
+      findInvokeCalls(parseSourceFile(frontendPath)),
+    );
 
     // Check that all invoked functions are either:
     // 1. Declared as standalone functions in manifest.yml

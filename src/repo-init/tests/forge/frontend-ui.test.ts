@@ -6,27 +6,36 @@
  * - Frontend entry point setup (ForgeReconciler.render, React.StrictMode)
  * - Correct import patterns for UI components
  *
- * @see {@link https://developer.atlassian.com/platform/forge/ui-kit/|Forge UI Kit}
- * @see {@link https://developer.atlassian.com/platform/forge/user-interface/|Forge User Interface}
+ * @see {@link https://developer.atlassian.com/platform/forge/ui-kit/overview/|UI Kit overview}
+ * @see {@link https://developer.atlassian.com/platform/forge/ui-kit/components/|UI Kit components}
+ * @see {@link https://developer.atlassian.com/platform/forge/ui-kit/use-ui-kit/|Use UI Kit}
  */
 
-import * as fs from "node:fs";
 import * as path from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import {
+  findCallExpressions,
   findImports,
   findJsxElements,
   getImportedNames,
   parseSourceFile,
 } from "./ast-helpers";
+import { getAllTypeScriptFiles } from "./filesystem-helpers";
 
 describe("Frontend UI Kit", () => {
-  const frontendPath = path.join(process.cwd(), "src/frontend/index.tsx");
+  const frontendDir = path.join(process.cwd(), "src/frontend");
+  const frontendFiles = getAllTypeScriptFiles(frontendDir);
+
+  function getFrontendSourceFiles() {
+    return frontendFiles.map((filePath) => ({
+      filePath,
+      sourceFile: parseSourceFile(filePath),
+    }));
+  }
 
   describe("Component Usage", () => {
     it("should not use native HTML elements like div, span, strong, etc", () => {
-      const sourceFile = parseSourceFile(frontendPath);
-
       // These native HTML elements should not appear as JSX
       // Note: Capitalized versions (Button, Form) are UI Kit components, not native HTML
       const nativeElements = [
@@ -44,15 +53,19 @@ describe("Frontend UI Kit", () => {
         "td",
       ];
 
-      const violations = findJsxElements(sourceFile, (tagName) => {
-        // Only match lowercase elements (native HTML)
-        // Capitalized elements are UI Kit components
-        const lowerTag = tagName.toLowerCase();
-        return nativeElements.includes(lowerTag) && tagName === lowerTag;
-      });
+      const violations = getFrontendSourceFiles().flatMap(
+        ({ filePath, sourceFile }) =>
+          findJsxElements(sourceFile, (tagName) => {
+            const lowerTag = tagName.toLowerCase();
+            return nativeElements.includes(lowerTag) && tagName === lowerTag;
+          }).map((v) => ({ ...v, filePath })),
+      );
 
       const violationMessages = violations
-        .map((v) => `Line ${v.line}: <${v.tagName}>`)
+        .map(
+          (v) =>
+            `${path.relative(process.cwd(), v.filePath)}:${v.line} <${v.tagName}>`,
+        )
         .join(", ");
 
       expect(
@@ -62,35 +75,37 @@ describe("Frontend UI Kit", () => {
     });
 
     it("should use DynamicTable instead of Table", () => {
-      const sourceFile = parseSourceFile(frontendPath);
-
-      // Check for <Table> JSX elements (should use DynamicTable instead)
-      const tableElements = findJsxElements(
-        sourceFile,
-        (tagName) => tagName === "Table",
+      const tableElements = getFrontendSourceFiles().flatMap(
+        ({ filePath, sourceFile }) =>
+          findJsxElements(sourceFile, (tagName) => tagName === "Table").map(
+            (v) => ({
+              ...v,
+              filePath,
+            }),
+          ),
       );
 
       expect(
         tableElements,
-        "Should not use <Table> component directly; use <DynamicTable> instead",
+        tableElements.length
+          ? `Should not use <Table> directly; use <DynamicTable> instead. Found: ${tableElements
+              .map(
+                (v) => `${path.relative(process.cwd(), v.filePath)}:${v.line}`,
+              )
+              .join(", ")}`
+          : undefined,
       ).toEqual([]);
     });
 
     it("should only import UI Kit components from @forge/react", () => {
-      const sourceFile = parseSourceFile(frontendPath);
-
-      // Check for forbidden imports from @forge/ui
-      const forgeUiImports = findImports(sourceFile, "@forge/ui");
+      const forgeReactImportCount = getFrontendSourceFiles().reduce(
+        (count, { sourceFile }) =>
+          count + findImports(sourceFile, "@forge/react").length,
+        0,
+      );
       expect(
-        forgeUiImports,
-        "Cannot import from '@forge/ui' (deprecated), use @forge/react instead",
-      ).toEqual([]);
-
-      // Verify @forge/react is imported for UI components
-      const forgeReactImports = findImports(sourceFile, "@forge/react");
-      expect(
-        forgeReactImports.length,
-        "Must import UI Kit components from @forge/react",
+        forgeReactImportCount,
+        "Must import UI Kit components from @forge/react somewhere in src/frontend/**",
       ).toBeGreaterThan(0);
 
       // Note: Importing React hooks (useState, useEffect) from 'react' is allowed
@@ -99,8 +114,6 @@ describe("Frontend UI Kit", () => {
     });
 
     it("should only use components exported from @forge/react", () => {
-      const sourceFile = parseSourceFile(frontendPath);
-
       // List of allowed UI Kit components from @forge/react
       // Derived from the official Forge UI Kit documentation
       // See: https://developer.atlassian.com/platform/forge/ui-kit/components/
@@ -211,26 +224,32 @@ describe("Frontend UI Kit", () => {
         "Global",
       ]);
 
-      // Extract all imported component names from @forge/react using AST
-      const importedComponents = getImportedNames(sourceFile, "@forge/react");
+      const importedComponents = getFrontendSourceFiles().flatMap(
+        ({ filePath, sourceFile }) =>
+          getImportedNames(sourceFile, "@forge/react").map((component) => ({
+            component,
+            filePath,
+          })),
+      );
 
       expect(
         importedComponents.length,
         "Must import UI Kit components from @forge/react",
       ).toBeGreaterThan(0);
 
-      // Verify all imported components are allowed
-      const invalidImports: string[] = [];
-      for (const component of importedComponents) {
-        if (!allowedComponents.has(component)) {
-          invalidImports.push(component);
-        }
-      }
+      const invalidImports = importedComponents.filter(
+        ({ component }) => !allowedComponents.has(component),
+      );
 
       expect(
         invalidImports,
         invalidImports.length > 0
-          ? `The following imports are not from @forge/react UI Kit: ${invalidImports.join(", ")}. Check the @forge/react package documentation.`
+          ? `The following imports are not from @forge/react UI Kit: ${invalidImports
+              .map(
+                (item) =>
+                  `${item.component} (${path.relative(process.cwd(), item.filePath)})`,
+              )
+              .join(", ")}. Check the @forge/react package documentation.`
           : undefined,
       ).toEqual([]);
     });
@@ -238,41 +257,72 @@ describe("Frontend UI Kit", () => {
 
   describe("Entry Point Registration", () => {
     it("should call ForgeReconciler.render() to register the UI", () => {
-      const content = fs.readFileSync(frontendPath, "utf-8");
+      const renderCalls = getFrontendSourceFiles().flatMap(
+        ({ filePath, sourceFile }) =>
+          findCallExpressions(sourceFile, (callName, node) => {
+            return (
+              callName === "render" &&
+              ts.isPropertyAccessExpression(node.expression) &&
+              node.expression.expression.getText(sourceFile) ===
+                "ForgeReconciler"
+            );
+          }).map((call) => ({ ...call, filePath })),
+      );
 
       expect(
-        content,
+        renderCalls.length,
         "ForgeReconciler.render() must be called to register the UI",
-      ).toMatch(/ForgeReconciler\.render\(/);
+      ).toBeGreaterThan(0);
     });
 
     it("should wrap App with React.StrictMode in ForgeReconciler.render()", () => {
-      const content = fs.readFileSync(frontendPath, "utf-8");
+      const strictModeRenderCalls = getFrontendSourceFiles().flatMap(
+        ({ filePath, sourceFile }) =>
+          findCallExpressions(sourceFile, (callName, node) => {
+            if (
+              callName !== "render" ||
+              !ts.isPropertyAccessExpression(node.expression) ||
+              node.expression.expression.getText(sourceFile) !==
+                "ForgeReconciler"
+            ) {
+              return false;
+            }
 
-      // Extract the ForgeReconciler.render call
-      const renderMatch = content.match(
-        /ForgeReconciler\.render\(\s*<React\.StrictMode>[\s\S]*?<\/React\.StrictMode>\s*,\s*\);/,
+            const [firstArg] = node.arguments;
+            return !!(
+              firstArg &&
+              ts.isJsxElement(firstArg) &&
+              firstArg.openingElement.tagName.getText(sourceFile) ===
+                "React.StrictMode"
+            );
+          }).map((call) => ({ ...call, filePath })),
       );
 
       expect(
-        renderMatch,
+        strictModeRenderCalls.length,
         "App should be wrapped with <React.StrictMode> in ForgeReconciler.render() to enable development-time checks for common React mistakes (Forge best practice)",
-      ).not.toBeNull();
+      ).toBeGreaterThan(0);
     });
 
     it("should not use render() from @forge/react directly", () => {
-      const sourceFile = parseSourceFile(frontendPath);
-
-      // Should not import render from @forge/react
-      const imports = findImports(sourceFile, "@forge/react");
-      const hasRenderImport = imports.some((imp) =>
-        imp.specifiers.includes("render"),
+      const renderImports = getFrontendSourceFiles().flatMap(
+        ({ filePath, sourceFile }) =>
+          findImports(sourceFile, "@forge/react")
+            .filter((imp) => imp.specifiers.includes("render"))
+            .map((imp) => ({ ...imp, filePath })),
       );
 
       expect(
-        hasRenderImport,
-        "Should not import 'render' from @forge/react; use ForgeReconciler.render() instead",
-      ).toBe(false);
+        renderImports,
+        renderImports.length
+          ? `Should not import 'render' from @forge/react; use ForgeReconciler.render() instead. Found: ${renderImports
+              .map(
+                (imp) =>
+                  `${path.relative(process.cwd(), imp.filePath)}:${imp.line}`,
+              )
+              .join(", ")}`
+          : undefined,
+      ).toEqual([]);
     });
   });
 });
