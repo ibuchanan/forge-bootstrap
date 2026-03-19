@@ -102,7 +102,8 @@ tmp=$(mktemp) && \
       "promptfoo":"*",
       "sort-package-json":"*",
       "tsx":"*",
-      "turbo":"*" }' \
+      "turbo":"*" 
+      }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -381,7 +382,12 @@ tmp=$(mktemp) && \
   mv "$tmp" biome.json
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "check":"biome check --write", "format":"biome format --write", "lint":"biome lint" }' \
+    '.scripts += { 
+      "format":"biome format --write", 
+      "format:check":"biome format", 
+      "lint:check":"biome lint", 
+      "lint:fix":"biome lint --write"
+      }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
@@ -451,19 +457,84 @@ tmp=$(mktemp) && \
 > Initialize default values for `package.json`
 
 ```sh
-tmp=$(mktemp) && \
-  jq \
-    '.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-tmp=$(mktemp) && \
-  jq \
-    --arg name `basename "$(pwd)"` \
-    '.name = $name' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
+tmp=$(mktemp) &&
+	jq \
+		'.version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
+		package.json \
+		>"$tmp" &&
+	mv "$tmp" package.json
+tmp=$(mktemp) &&
+	jq \
+		--arg name "$(basename "$(pwd)")" \
+		'.name = $name' \
+		package.json \
+		>"$tmp" &&
+	mv "$tmp" package.json
+common_scripts=(
+	build
+	changelog
+	check
+	clean
+	dev
+	format
+	format:check
+	generate
+	lint
+	lint:check
+	test
+	test:coverage
+	prepare
+	preview
+	start
+	todo
+	typecheck
+)
+for script in "${common_scripts[@]}"; do
+	tmp=$(mktemp) &&
+		jq \
+			--arg script "$script" \
+			--arg not_implemented "echo 'Not implemented'" \
+			'.scripts += { ($script):$not_implemented }' \
+			package.json \
+			>"$tmp" &&
+		mv "$tmp" package.json
+done
+tmp=$(mktemp) &&
+	jq \
+		--arg name "$(basename "$(pwd)")" \
+		'.name = $name' \
+		package.json \
+		>"$tmp" &&
+	mv "$tmp" package.json
+tmp=$(mktemp) &&
+	jq \
+		'.dependencies += {
+      "@forge/cli":"*",
+      "corepack":"*",
+      "knip":"*",
+      "promptfoo":"*",
+      "sort-package-json":"*",
+      "tsx":"*",
+      "turbo":"*"
+      }' \
+		package.json \
+		>"$tmp" &&
+	mv "$tmp" package.json
+tmp=$(mktemp) &&
+	jq \
+		--arg todo "'TODO'" \
+		--arg package_json "'package.json'" \
+		--arg message "'No TODOs found!'" \
+		'.scripts += {
+      "check":"npm run lint && npm run format:check && npm run typecheck",
+      "clean":"rm -rf ./dist",
+      "lint":"npm run lint:check && forge lint",
+      "todo":"grep -rn \($todo) --exclude=\($package_json) . --color=auto || echo \($message)",
+      }' \
+		package.json \
+		>"$tmp" &&
+	mv "$tmp" package.json
+sort-package-json
 ```
 
 ### repo-init promptfoo
@@ -551,7 +622,11 @@ modules=(
 npm install --save-dev ${modules[@]}
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "build":"tsc", "clean":"rm -rf ./dist", "api-types":"npx openapi-typescript" }' \
+    '.scripts += { 
+      "build":"tsc", 
+      "generate":"openapi-typescript", 
+      "typecheck":"tsc --noEmit", 
+      }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
