@@ -296,6 +296,8 @@ or duplicative.
 > Run all post-creation configuration for Forge Rovo agents
 
 ```sh
+rm -Rf node_modules
+rm package-lock.json
 echo "## node.js options"
 echo "repo-init aidev"
 $MASK repo-init aidev
@@ -333,6 +335,8 @@ $MASK repo-update pin-node-version
 > Default post-creation configuration for typical Forge apps
 
 ```sh
+rm -Rf node_modules
+rm package-lock.json
 echo "## node.js options"
 echo "repo-init aidev"
 $MASK repo-init aidev
@@ -554,6 +558,7 @@ tmp=$(mktemp) && \
 
 ```sh
 $MASK repo-init typescript
+npm install --save-dev yaml
 yq \
   --inplace \
   --prettyPrint \
@@ -571,13 +576,6 @@ yq \
   --prettyPrint \
   '.modules["rovo:agent"][].prompt = "resource:agent-prompts;agent-instructions.md"' \
   manifest.yml
-  modules=(
-    @biomejs/biome
-    tsx
-    typescript
-    yaml
-  )
-  npm install --save-dev ${modules[@]}
 tmp=$(mktemp) && \
   jq \
     '.scripts += { "generate:rovo":"tsx ./scripts/actiontypes.ts && npm run format" }' \
