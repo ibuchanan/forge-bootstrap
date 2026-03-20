@@ -479,8 +479,11 @@ common_scripts=(
 	format
 	format:check
 	generate
+	generate:openapi
+	generate:rovo
 	lint
 	lint:check
+	lint:fix
 	test
 	test:coverage
 	prepare
@@ -508,26 +511,13 @@ tmp=$(mktemp) &&
 	mv "$tmp" package.json
 tmp=$(mktemp) &&
 	jq \
-		'.dependencies += {
-      "@forge/cli":"*",
-      "corepack":"*",
-      "knip":"*",
-      "promptfoo":"*",
-      "sort-package-json":"*",
-      "tsx":"*",
-      "turbo":"*"
-      }' \
-		package.json \
-		>"$tmp" &&
-	mv "$tmp" package.json
-tmp=$(mktemp) &&
-	jq \
 		--arg todo "'TODO'" \
 		--arg package_json "'package.json'" \
 		--arg message "'No TODOs found!'" \
 		'.scripts += {
       "check":"npm run lint && npm run format:check && npm run typecheck",
       "clean":"rm -rf ./dist",
+      "generate":"npm run generate:openapi && npm run generate:rovo",
       "lint":"npm run lint:check && forge lint",
       "todo":"grep -rn \($todo) --exclude=\($package_json) . --color=auto || echo \($message)",
       }' \
@@ -563,6 +553,7 @@ tmp=$(mktemp) && \
 > Initialize Forge project with standard prompt configuration
 
 ```sh
+$MASK repo-init typescript
 yq \
   --inplace \
   --prettyPrint \
@@ -589,15 +580,14 @@ yq \
   npm install --save-dev ${modules[@]}
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "actiontypes":"tsx ./scripts/actiontypes.ts && biome format --write" }' \
+    '.scripts += { "generate:rovo":"tsx ./scripts/actiontypes.ts && npm run format" }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
-cp $MASKFILE_DIR/tsconfig.json .
 mkdir -p src/rovo
-cp $MASKFILE_DIR/src/rovo/action.ts src/rovo
+cp $MASKFILE_DIR/src/rovo/src/rovo/action.ts src/rovo
 mkdir -p scripts
-cp $MASKFILE_DIR/scripts/actiontypes.ts scripts
+cp $MASKFILE_DIR/src/rovo/scripts/actiontypes.ts scripts
 ```
 
 ### repo-init typescript
@@ -624,7 +614,7 @@ tmp=$(mktemp) && \
   jq \
     '.scripts += { 
       "build":"tsc", 
-      "generate":"openapi-typescript", 
+      "generate:openapi":"openapi-typescript", 
       "typecheck":"tsc --noEmit", 
       }' \
     package.json \
@@ -644,6 +634,7 @@ cp $MASKFILE_DIR/src/repo-init/typescript/redocly.yaml .
 With [configuration for Vitest](https://lukasniessen.github.io/ArchUnitTS/#md:vitest)
 
 ```sh
+$MASK repo-init typescript
 modules=(
   vitest
   archunit
@@ -672,6 +663,7 @@ cp -R $MASKFILE_DIR/src/repo-init/tests tests
 > Initialize Forge project with webtrigger configuration for testing
 
 ```sh
+$MASK repo-init typescript
 yq \
   --inplace \
   --prettyPrint \
@@ -693,6 +685,7 @@ echo 'export { trigger } from "./forge/trigger";' >> src/index.ts
 > Initialize Forge project with lifecycle for observability
 
 ```sh
+$MASK repo-init typescript
 yq \
   --inplace \
   --prettyPrint \
