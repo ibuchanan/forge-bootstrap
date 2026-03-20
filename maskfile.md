@@ -537,7 +537,7 @@ This is compatible with the Rovo configuration (`repo-init rovo`).
 npm install --save-dev promptfoo
 npx promptfoo init
 cp $MASKFILE_DIR/src/repo-init/promptfoo/promptfooconfig.yaml .
-cp -R $MASKFILE_DIR/src/repo-init/promptfoo/test .
+cp -R $MASKFILE_DIR/src/repo-init/promptfoo/tests .
 mkdir -p prompts
 touch prompts/agent-instructions.md
 tmp=$(mktemp) && \
@@ -655,7 +655,7 @@ export default defineConfig({
     },
 });
 EOF
-cp -R $MASKFILE_DIR/src/repo-init/tests tests
+cp -R $MASKFILE_DIR/src/repo-init/tests .
 ```
 
 ### repo-init dev-trigger
