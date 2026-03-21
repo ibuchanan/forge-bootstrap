@@ -252,6 +252,36 @@ done
 npm update
 ```
 
+### home-update rovo-dev
+
+> Configure Rovo Dev CLI with bash commands for Forge dev
+
+```sh
+commands=(
+  'tree'
+  'jq'
+  'yq'
+  'npm run'
+  'npm test'
+  'forge --help'
+  'forge environments'
+  'forge lint'
+  'forge logs'
+  'forge version'
+  'forge whoami'
+  'knip'
+  'sort-package-json'
+)
+for cmd in "${commands[@]}"; do
+  export cmd
+  yq \
+    --inplace \
+    --prettyPrint \
+    '.toolPermissions.bash.commands += [{"command": (strenv(cmd) + ".*"), "permission": "allow"}]' \
+    "$HOME/.rovodev/config.yml"
+done
+```
+
 
 ## repo-create
 
