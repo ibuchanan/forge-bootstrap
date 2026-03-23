@@ -326,34 +326,37 @@ or duplicative.
 > Run all post-creation configuration for Forge Rovo agents
 
 ```sh
-rm -Rf node_modules
-rm package-lock.json
-echo "## node.js options"
-echo "repo-init aidev"
-$MASK repo-init aidev
-echo "repo-init biome"
-$MASK repo-init biome
-echo "repo-init changelog"
-$MASK repo-init changelog
+echo "## git options"
 echo "repo-init gitignore"
 $MASK repo-init gitignore
 echo "repo-init oss"
 $MASK repo-init oss
+echo "repo-init changelog"
+$MASK repo-init changelog
+
+echo "## node.js options"
+rm -Rf node_modules
+rm package-lock.json
 echo "repo-init package"
 $MASK repo-init package
-echo "repo-init promptfoo"
-$MASK repo-init promptfoo
 echo "repo-init typescript"
 $MASK repo-init typescript
-echo "repo-init test"
-$MASK repo-init test
+echo "repo-init biome"
+$MASK repo-init biome
+
 echo "## forge options"
+echo "repo-init aidev"
+$MASK repo-init aidev
 echo "repo-init dev-trigger"
 $MASK repo-init dev-trigger
 echo "repo-init lifecycle-trigger"
 $MASK repo-init lifecycle-trigger
 echo "repo-init rovo"
 $MASK repo-init rovo
+echo "repo-init test"
+$MASK repo-init test
+echo "repo-init promptfoo"
+$MASK repo-init promptfoo
 echo "repo-update format-forge"
 $MASK repo-update format-forge
 echo "repo-update pin-node-version"
@@ -365,24 +368,31 @@ $MASK repo-update pin-node-version
 > Default post-creation configuration for typical Forge apps
 
 ```sh
-rm -Rf node_modules
-rm package-lock.json
-echo "## node.js options"
-echo "repo-init aidev"
-$MASK repo-init aidev
+echo "## git options"
 echo "repo-init gitignore"
 $MASK repo-init gitignore
 echo "repo-init oss"
 $MASK repo-init oss
+echo "repo-init changelog"
+$MASK repo-init changelog
+
+echo "## node.js options"
+rm -Rf node_modules
+rm package-lock.json
 echo "repo-init package"
 $MASK repo-init package
 echo "repo-init typescript"
 $MASK repo-init typescript
+
 echo "## forge options"
-echo "repo-init lifecycle-trigger"
-$MASK repo-init lifecycle-trigger
+echo "repo-init aidev"
+$MASK repo-init aidev
+echo "repo-init test"
+$MASK repo-init test
 echo "repo-update format-forge"
 $MASK repo-update format-forge
+echo "repo-update pin-node-version"
+$MASK repo-update pin-node-version
 ```
 
 ### repo-init aidev
