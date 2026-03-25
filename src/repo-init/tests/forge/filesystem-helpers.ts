@@ -6,6 +6,16 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 /**
+ * Check if a directory exists
+ *
+ * @param dir - Directory path to check
+ * @returns True if the directory exists, false otherwise
+ */
+export function directoryExists(dir: string): boolean {
+  return fs.existsSync(dir);
+}
+
+/**
  * Recursively find all TypeScript files in a directory
  *
  * @param dir - Directory to scan

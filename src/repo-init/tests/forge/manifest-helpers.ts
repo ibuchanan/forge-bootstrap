@@ -40,7 +40,8 @@ export interface WebTriggerModule {
 
 export interface TriggerModule {
   key: string;
-  function: string;
+  function?: string;
+  endpoint?: string;
   events?: Array<{
     listen: string;
   }>;
@@ -145,11 +146,14 @@ export function getManifestHandlerReferences(
   }
 
   for (const trigger of manifest.modules.trigger || []) {
-    refs.push({
-      moduleType: "trigger",
-      key: trigger.key,
-      handler: `src/index.ts#${trigger.function}`,
-    });
+    // Skip triggers that use remote endpoints instead of local functions
+    if (trigger.function) {
+      refs.push({
+        moduleType: "trigger",
+        key: trigger.key,
+        handler: `src/index.ts#${trigger.function}`,
+      });
+    }
   }
 
   for (const action of manifest.modules.action || []) {

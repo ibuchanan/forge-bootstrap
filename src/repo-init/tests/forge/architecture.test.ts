@@ -14,6 +14,7 @@
  * @see {@link https://developer.atlassian.com/platform/forge/add-content-security-and-egress-controls/|Permissions and security}
  */
 
+import { join } from "node:path";
 import { type ProjectFiles, projectFiles } from "archunit";
 import ts from "typescript";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -23,6 +24,7 @@ import {
   findLocalImports,
   parseSourceFile,
 } from "./ast-helpers";
+import { directoryExists } from "./filesystem-helpers";
 
 describe("Forge Architecture", () => {
   // Cache projectFiles() result to speed up tests
@@ -34,34 +36,39 @@ describe("Forge Architecture", () => {
   });
 
   describe("transitive dependencies on @forge libraries", () => {
-    it("frontend should not import any local modules that use @forge/api", async () => {
-      // General rule: Frontend files shouldn't import from any module that
-      // depends on @forge/api (backend-only package). This prevents frontend
-      // from accidentally importing server-side code that won't be available in the browser.
-      const rule = cachedProjectFiles
-        .inFolder("src/frontend/**")
-        .should()
-        .adhereTo((file) => {
-          const importedModules = findLocalImports(parseSourceFile(file.path));
+    it.skipIf(!directoryExists(join("src", "frontend")))(
+      "frontend should not import any local modules that use @forge/api",
+      async () => {
+        // General rule: Frontend files shouldn't import from any module that
+        // depends on @forge/api (backend-only package). This prevents frontend
+        // from accidentally importing server-side code that won't be available in the browser.
+        const rule = cachedProjectFiles
+          .inFolder("src/frontend/**")
+          .should()
+          .adhereTo((file) => {
+            const importedModules = findLocalImports(
+              parseSourceFile(file.path),
+            );
 
-          // Frontend should only import from itself or shared UI utilities
-          // Any import that goes up to parent directories could import backend code
-          for (const importedModule of importedModules) {
-            if (importedModule.startsWith("../")) {
-              // Allow imports from src/util/** (shared utilities)
-              if (importedModule.startsWith("../util/")) {
-                continue;
+            // Frontend should only import from itself or shared UI utilities
+            // Any import that goes up to parent directories could import backend code
+            for (const importedModule of importedModules) {
+              if (importedModule.startsWith("../")) {
+                // Allow imports from src/util/** (shared utilities)
+                if (importedModule.startsWith("../util/")) {
+                  continue;
+                }
+                // Importing from parent directory - potential backend code
+                return false;
               }
-              // Importing from parent directory - potential backend code
-              return false;
             }
-          }
 
-          return true;
-        }, "Frontend should not import from modules outside src/frontend/** (may depend on @forge/api)");
+            return true;
+          }, "Frontend should not import from modules outside src/frontend/** (may depend on @forge/api)");
 
-      await expect(rule).toPassAsync();
-    });
+        await expect(rule).toPassAsync();
+      },
+    );
 
     it("resolvers should not import any modules that use @forge/bridge", async () => {
       // General rule: Resolver files shouldn't import from any module that
@@ -98,29 +105,35 @@ describe("Forge Architecture", () => {
       await expect(rule).toPassAsync();
     });
 
-    it("frontend should not import from resolvers", async () => {
-      // General rule: Frontend code (UI Kit) should never import from
-      // resolver functions (backend)
-      const rule = cachedProjectFiles
-        .inFolder("src/frontend/**")
-        .shouldNot()
-        .dependOnFiles()
-        .inFolder("src/resolvers/**");
+    it.skipIf(!directoryExists(join("src", "frontend")))(
+      "frontend should not import from resolvers",
+      async () => {
+        // General rule: Frontend code (UI Kit) should never import from
+        // resolver functions (backend)
+        const rule = cachedProjectFiles
+          .inFolder("src/frontend/**")
+          .shouldNot()
+          .dependOnFiles()
+          .inFolder("src/resolvers/**");
 
-      await expect(rule).toPassAsync();
-    });
+        await expect(rule).toPassAsync();
+      },
+    );
 
-    it("resolvers should not import from frontend", async () => {
-      // General rule: Resolver functions (backend) should never import
-      // from frontend code (UI Kit)
-      const rule = cachedProjectFiles
-        .inFolder("src/resolvers/**")
-        .shouldNot()
-        .dependOnFiles()
-        .inFolder("src/frontend/**");
+    it.skipIf(!directoryExists(join("src", "frontend")))(
+      "resolvers should not import from frontend",
+      async () => {
+        // General rule: Resolver functions (backend) should never import
+        // from frontend code (UI Kit)
+        const rule = cachedProjectFiles
+          .inFolder("src/resolvers/**")
+          .shouldNot()
+          .dependOnFiles()
+          .inFolder("src/frontend/**");
 
-      await expect(rule).toPassAsync();
-    });
+        await expect(rule).toPassAsync();
+      },
+    );
   });
 
   describe("egress and fetch boundaries", () => {
@@ -164,23 +177,26 @@ describe("Forge Architecture", () => {
   });
 
   describe("storage API boundaries", () => {
-    it("frontend should not access Forge storage APIs", async () => {
-      // General rule: Client-side code (frontend) cannot use Forge storage APIs.
-      // Storage APIs (Forge SQL, Key-Value Storage, Custom Entities) are
-      // backend-only and must be called with .asApp() from resolvers.
-      // Frontend must use REST APIs instead.
-      const rule = cachedProjectFiles
-        .inFolder("src/frontend/**")
-        .should()
-        .adhereTo((file) => {
-          const sourceFile = parseSourceFile(file.path);
-          const forgeApiImports = findImports(sourceFile, "@forge/api");
-          const forgeKvsImports = findImports(sourceFile, "@forge/kvs");
+    it.skipIf(!directoryExists(join("src", "frontend")))(
+      "frontend should not access Forge storage APIs",
+      async () => {
+        // General rule: Client-side code (frontend) cannot use Forge storage APIs.
+        // Storage APIs (Forge SQL, Key-Value Storage, Custom Entities) are
+        // backend-only and must be called with .asApp() from resolvers.
+        // Frontend must use REST APIs instead.
+        const rule = cachedProjectFiles
+          .inFolder("src/frontend/**")
+          .should()
+          .adhereTo((file) => {
+            const sourceFile = parseSourceFile(file.path);
+            const forgeApiImports = findImports(sourceFile, "@forge/api");
+            const forgeKvsImports = findImports(sourceFile, "@forge/kvs");
 
-          return forgeApiImports.length === 0 && forgeKvsImports.length === 0;
-        }, "Frontend should not access Forge storage APIs (@forge/api storage, Forge SQL, KV, Custom Entities)");
+            return forgeApiImports.length === 0 && forgeKvsImports.length === 0;
+          }, "Frontend should not access Forge storage APIs (@forge/api storage, Forge SQL, KV, Custom Entities)");
 
-      await expect(rule).toPassAsync();
-    });
+        await expect(rule).toPassAsync();
+      },
+    );
   });
 });

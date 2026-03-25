@@ -21,11 +21,13 @@ import {
   getImportedNames,
   parseSourceFile,
 } from "./ast-helpers";
-import { getAllTypeScriptFiles } from "./filesystem-helpers";
+import { directoryExists, getAllTypeScriptFiles } from "./filesystem-helpers";
 
-describe("Frontend UI Kit", () => {
-  const frontendDir = path.join(process.cwd(), "src/frontend");
-  const frontendFiles = getAllTypeScriptFiles(frontendDir);
+const frontendDir = path.join(process.cwd(), "src/frontend");
+const hasFrontend = directoryExists(frontendDir);
+
+describe.skipIf(!hasFrontend)("Frontend UI Kit", () => {
+  const frontendFiles = hasFrontend ? getAllTypeScriptFiles(frontendDir) : [];
 
   function getFrontendSourceFiles() {
     return frontendFiles.map((filePath) => ({

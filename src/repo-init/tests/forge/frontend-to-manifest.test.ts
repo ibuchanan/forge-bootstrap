@@ -18,7 +18,7 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { getLineNumber, parseSourceFile } from "./ast-helpers";
-import { getAllTypeScriptFiles } from "./filesystem-helpers";
+import { directoryExists, getAllTypeScriptFiles } from "./filesystem-helpers";
 import {
   getModuleResolvers,
   getProjectPaths,
@@ -180,6 +180,14 @@ describe("Frontend Invoke Validation", () => {
   const projectRoot = process.cwd();
 
   it("should declare all invoked functions in manifest.yml or module resolver", () => {
+    const frontendPath = join(projectRoot, "src/frontend");
+
+    // Skip test if no frontend code exists (backend-only apps)
+    if (!directoryExists(frontendPath)) {
+      expect(true).toBe(true); // No frontend = test passes by definition
+      return;
+    }
+
     const manifest = loadManifest();
 
     // Get the function definitions from manifest (under modules.function)
@@ -193,9 +201,7 @@ describe("Frontend Invoke Validation", () => {
     const resolversSource = parseSourceFile(resolversPath);
 
     // Get invoked functions from all frontend files
-    const frontendFiles = getAllTypeScriptFiles(
-      join(projectRoot, "src/frontend"),
-    );
+    const frontendFiles = getAllTypeScriptFiles(frontendPath);
     const invokeCalls = frontendFiles.flatMap((frontendPath) =>
       findInvokeCalls(parseSourceFile(frontendPath)),
     );
@@ -279,11 +285,14 @@ describe("Frontend Invoke Validation", () => {
     // Check trigger (event) module functions
     const triggers = manifest.modules.trigger || [];
     for (const trigger of triggers) {
-      const functionName = trigger.function;
-      if (!exportedFunctionNames.includes(functionName)) {
-        missingExports.push(
-          `Trigger "${trigger.key}" (function: ${functionName}) is declared in manifest but not exported from src/index.ts`,
-        );
+      // Skip triggers that use remote endpoints instead of local functions
+      if (trigger.function) {
+        const functionName = trigger.function;
+        if (!exportedFunctionNames.includes(functionName)) {
+          missingExports.push(
+            `Trigger "${trigger.key}" (function: ${functionName}) is declared in manifest but not exported from src/index.ts`,
+          );
+        }
       }
     }
 

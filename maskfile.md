@@ -530,6 +530,7 @@ common_scripts=(
 	lint:fix
 	test
 	test:coverage
+	test:watch
 	prepare
 	preview
 	start
@@ -578,6 +579,7 @@ sort-package-json
 This is compatible with the Rovo configuration (`repo-init rovo`).
 
 ```sh
+$MASK repo-init test
 npm install --save-dev promptfoo
 npx promptfoo init
 cp $MASKFILE_DIR/src/repo-init/promptfoo/promptfooconfig.yaml .
@@ -680,7 +682,11 @@ modules=(
 npm install --save-dev ${modules[@]}
 tmp=$(mktemp) && \
   jq \
-    '.scripts += { "test":"vitest" }' \
+    '.scripts += { 
+      "test": "vitest run",
+      "test:watch": "vitest watch",
+      "test:coverage": "vitest run --coverage",
+      }' \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
