@@ -57,6 +57,7 @@ The libraries we use are:
 * [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
 * [`turbo`](https://turborepo.com/): the build system for JavaScript and TypeScript codebases (esp monorepos)
+* [`vskill`](https://verified-skill.com/): a package manager & builder for securing the AI skills supply chain
 * [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
 Note: `yarn` is used in many Atlassian internal repos and even in some public examples
@@ -102,7 +103,8 @@ tmp=$(mktemp) && \
       "promptfoo":"*",
       "sort-package-json":"*",
       "tsx":"*",
-      "turbo":"*" 
+      "turbo":"*",
+      "vskill":"*"
       }' \
     package.json \
     > "$tmp" && \
@@ -220,6 +222,7 @@ The libraries we use are:
 * [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
 * [`turbo`](https://turborepo.com/): the build system for JavaScript and TypeScript codebases (esp monorepos)
+* [`vskill`](https://verified-skill.com/): a package manager & builder for securing the AI skills supply chain
 * [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
 Note: `yarn` is used in many Atlassian internal repos and even in some public examples
@@ -239,6 +242,7 @@ npm_globals=(
   sort-package-json
   tsx
   turbo
+  vskill
 )
 for lib in "${npm_globals[@]}"; do
   tmp=$(mktemp) && \
@@ -400,7 +404,8 @@ $MASK repo-update pin-node-version
 > Initialize repo with skills, agents instructions, etc used by AI coding agents.
 
 ```sh
-cp -R $MASKFILE_DIR/src/repo-init/aidev/AGENTS.md .
+cp $MASKFILE_DIR/src/repo-init/aidev/AGENTS.md .
+cp -R $MASKFILE_DIR/src/repo-init/aidev/.agents .
 ```
 
 ### repo-init biome
