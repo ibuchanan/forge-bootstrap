@@ -1,0 +1,38 @@
+# EditorConfig is awesome: https://editorconfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# YAML files (manifest.yml)
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JavaScript/TypeScript (Forge backend/Frontend)
+[*.{js,jsx,ts,tsx}]
+indent_style = space
+indent_size = 2
+
+# JSON (tsconfig.json)
+[*.json]
+indent_style = space
+indent_size = 2
+
+# Resources (Static UI)
+[static/**/*.html]
+indent_style = space
+indent_size = 2
+
+# Documentation (Markdown)
+[*.md]
+indent_style = space
+indent_size = 2

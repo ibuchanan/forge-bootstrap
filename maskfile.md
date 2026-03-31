@@ -440,6 +440,7 @@ tmp=$(mktemp) && \
     package.json \
     > "$tmp" && \
   mv "$tmp" package.json
+cp $MASKFILE_DIR/src/repo-init/format/.editorconfig .
 ```
 
 ### repo-init changelog
