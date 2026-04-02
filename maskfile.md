@@ -281,7 +281,7 @@ for cmd in "${commands[@]}"; do
   yq \
     --inplace \
     --prettyPrint \
-    '.toolPermissions.bash.commands += [{"command": (strenv(cmd) + ".*"), "permission": "allow"}]' \
+    '.toolPermissions.bash.commands += [{"command": (strenv(cmd) + "(\s.*)?"), "permission": "allow"}]' \
     "$HOME/.rovodev/config.yml"
 done
 ```
@@ -526,6 +526,10 @@ common_scripts=(
 	check
 	clean
 	dev
+	forge:deploy
+	forge:install
+	forge:uninstall
+	forge:upgrade
 	format
 	format:check
 	generate
@@ -568,6 +572,10 @@ tmp=$(mktemp) &&
 		'.scripts += {
       "check":"npm run lint && npm run format:check && npm run typecheck",
       "clean":"rm -rf ./dist",
+      "forge:deploy": "source .env && forge deploy --environment development",
+      "forge:install": "source .env && forge install --site \"$SITENAME.atlassian.net\" --product $PRODUCT --environment development --non-interactive",
+      "forge:uninstall": "source .env && forge uninstall --site \"$SITENAME.atlassian.net\" --product $PRODUCT",
+      "forge:upgrade": "source .env && forge install --upgrade --site \"$SITENAME.atlassian.net\" --product $PRODUCT --environment development --non-interactive",
       "generate":"npm run generate:openapi && npm run generate:rovo",
       "lint":"npm run lint:check && forge lint",
       "todo":"grep -rn \($todo) --exclude=\($package_json) . --color=auto || echo \($message)",
