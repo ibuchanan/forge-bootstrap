@@ -660,7 +660,7 @@ and type-safe fetching.
 modules=(
   openapi-typescript
   tsx
-  typescript
+  typescript@5
   @types/node
 )
 npm install --save-dev ${modules[@]}
@@ -676,6 +676,8 @@ tmp=$(mktemp) && \
   mv "$tmp" package.json
 cp $MASKFILE_DIR/src/repo-init/typescript/tsconfig.json .
 cp $MASKFILE_DIR/src/repo-init/typescript/redocly.yaml .
+for file in $(find src -name "*.jsx"); do mv "$file" "${file%.jsx}.tsx"; done
+for file in $(find src -name "*.js"); do mv "$file" "${file%.js}.ts"; done
 ```
 
 ### repo-init test
