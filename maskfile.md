@@ -140,6 +140,17 @@ brew_packages=(
 brew install ${brew_packages[@]}
 ```
 
+### home-init bun
+
+> Install [`bun`](https://bun.sh/) via the official install script
+
+Uses the official `curl`-to-shell install method documented at
+[bun.sh/docs/installation](https://bun.sh/docs/installation).
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
 
 ## home-update
 
@@ -156,6 +167,8 @@ echo "home-update node-lts"
 $MASK home-update node-lts
 echo "home-update npm-global"
 $MASK home-update npm-global
+echo "home-update bun"
+$MASK home-update bun
 ```
 
 ### home-update prereq
@@ -254,6 +267,17 @@ for lib in "${npm_globals[@]}"; do
     mv "$tmp" package.json
 done
 npm update
+```
+
+### home-update bun
+
+> Update [`bun`](https://bun.sh/) to the latest version
+
+Uses `bun upgrade` to update an existing install to the latest version.
+See `home-init bun` for the initial install.
+
+```bash
+bun upgrade
 ```
 
 ### home-update rovo-dev

@@ -114,6 +114,7 @@ mask home-init shell
 mask home-init bin
 mask home-init npm-global
 mask home-init beautification
+mask home-init bun
 ```
 
 Restart your shell.
@@ -127,6 +128,7 @@ Upon restart, you should see a pretty shell.
 ```bash
 fnm --version
 node --version
+bun --version
 forge-bootstrap --help
 ```
 
