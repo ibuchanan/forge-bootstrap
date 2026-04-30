@@ -5,7 +5,11 @@ description: A skill for Atlassian Forge CLI usage, covering commands, workflows
 
 # Forge CLI
 
-The Forge CLI is the command line interface for building and deploying Atlassian Forge apps. Install with `npm i -g @forge/cli@latest`. Upgrade by uninstalling first then reinstalling (`npm uninstall -g @forge/cli && npm i -g @forge/cli@latest`). CLI versions are supported for 6 months after release.
+The Forge CLI is the command line interface for building and deploying
+Atlassian Forge apps. In this bootstrap, install and upgrade it with
+bun-managed global CLIs: `bun add --global @forge/cli@latest`, or run
+`forge-bootstrap home-update bun-global` to refresh the canonical CLI set. CLI
+versions are supported for 6 months after release.
 
 ## Quick start workflow
 

@@ -1,284 +1,202 @@
-# Forge Onboarding
+# Forge Bootstrap
 
-[Forge getting started instructions](https://developer.atlassian.com/platform/forge/getting-started/)
-are solid for the range of newbies and experts
-because they embrace the "least common denominator" options.
-These instruction target the occasional developer within Atlassian,
-optimizing for:
-* rapid spin-up of [a Forge dev configuration](https://www.atlassian.com/blog/it-teams/configuration-management-for-dev-environments)
-* potentially long times of inactivity, and a need to refresh the configuration
+Forge Bootstrap is a Mask-powered toolkit for setting up and refreshing an
+Atlassian Forge development environment. It is optimized for occasional Forge
+and Rovo developers who want repeatable setup, easy refresh commands, and
+generated project defaults.
 
-Follow the steps below instead of running Forge getting started.
-They are longer, but will make it easier to maintain over time.
+The home-directory tooling is moving away from `npm install --global` and
+npm-global state. Use:
 
-Use the test subsections to check
-if the step was performed correctly.
-All test commands should return obvious results,
-like a version number.
-An error is a test failure.
+- [`bun`](https://bun.sh/) for global JavaScript CLIs such as `@forge/cli`,
+  `promptfoo`, `tsx`, and `turbo`.
+- [`uv`](https://docs.astral.sh/uv/) for Python-based tools installed with
+  `uv tool`.
+- [`fnm`](https://github.com/Schniz/fnm) for Node.js runtime versions used by
+  Forge projects.
 
-## 1. Atlassian default is MacOS
+## What this repo provides
 
-These instructions assume running on MacOS.
-The general configuration works on Linux
-but no instructions have been written to explain that variation.
-On MacOS, [the default shell](https://support.apple.com/en-gb/guide/terminal/trml113/mac)
-is already `zsh`.
+- Shell profile snippets that put `$HOME/.bun/bin`, `$HOME/.local/bin`, and
+  `$HOME/bin` on `PATH`.
+- Mask commands for one-time home setup and ongoing tool updates.
+- Mask commands for adding common Forge/Rovo project defaults after
+  `forge create`.
+- Starter files for TypeScript, promptfoo, Biome, AI-agent instructions, OSS
+  boilerplate, and Forge tests.
 
-### Test
+## Prerequisites
 
-```bash
-echo $SHELL
-```
+These instructions assume macOS with `zsh`. The scripts are mostly shell-based
+and may work on Linux, but Linux setup is not documented here.
 
-## 2. Homebrew
-
-[Homebrew](https://brew.sh/) is,
-"The Missing Package Manager for macOS"
-(and also works on Linux).
-Because Atlassian no longer allows users to be admins on their own machines,
-please use the [untar anywhere](https://docs.brew.sh/Installation#untar-anywhere-unsupported)
-method of installation.
+Install Homebrew first. On locked-down macOS machines where admin access is
+unavailable, use Homebrew's untar-anywhere installation pattern:
 
 ```bash
-mkdir $HOME/homebrew
-cd $HOME
-curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip-components 1 -C homebrew
-eval "$($HOME/homebrew/bin/brew shellenv)"
+mkdir "$HOME/homebrew"
+cd "$HOME"
+curl -L https://github.com/Homebrew/brew/tarball/master \
+  | tar xz --strip-components 1 -C homebrew
+eval "$("$HOME/homebrew/bin/brew" shellenv)"
 brew update --force --quiet
 chmod -R go-w "$(brew --prefix)/share/zsh"
 ```
 
-You may need to confirm the installation of Xcode CLI tools.
-
-### Test
-
-```bash
-brew -—version
-```
-
-## 3. Mask
+Then install Mask:
 
 ```bash
 brew install mask
-```
-
-### Test
-
-```bash
 mask --version
 ```
 
-## 4. Git
+## Quickstart: set up a Forge workstation
 
-[Git](https://git-scm.com/) comes preinstalled on MacOS.
-And will be installed by Brew if it was not installed.
-As such the following is more a matter of configuration.
-
-### Standard dir structure
-
-Over time, you may accumulate many cloned Git repos.
-It helps to have some directory structure to help manage them.
-For now, we only need the structure for cloning this repo.
-If you vary from this structure,
-you'll have to modify configuration in a later step.
+Clone this repo into the path expected by the shell profile snippet:
 
 ```bash
-mkdir -p $HOME/dev/git/github.com/ibuchanan
-```
-
-### Clone the forge-bootstrap helper
-
-```bash
-cd $HOME/dev/git/github.com/ibuchanan
+mkdir -p "$HOME/dev/git/github.com/ibuchanan"
+cd "$HOME/dev/git/github.com/ibuchanan"
 git clone https://github.com/ibuchanan/forge-bootstrap.git
+cd forge-bootstrap
 ```
 
-### Test
+Run the one-time bootstrap commands:
 
-```bash
-git --version
-dir $HOME/dev/git/github.com/ibuchanan/forge-bootstrap
-```
-
-## 5. Bootstrapping
-
-> [!WARNING]
-> **The following will change your shell!**
-> The commands will backup your existing shell config.
-
-In the `forge-bootstrap` dir:
 ```bash
 mask home-update prereq
 mask home-init shell
 mask home-init bin
-mask home-init npm-global
 mask home-init beautification
+mask home-update node-lts
 mask home-init bun
+mask home-init uv
+mask home-init bun-global
 ```
 
-Restart your shell.
-The quickest way is to start a new terminal window
-with Command-N.
-
-### Test
-
-Upon restart, you should see a pretty shell.
+Open a new terminal window, then verify the tools are on `PATH`:
 
 ```bash
 fnm --version
 node --version
 bun --version
+uv --version
+forge --version
 forge-bootstrap --help
 ```
 
-## 6. Global Node commands
+`forge-bootstrap` is an alias installed by
+`src/home-init/shell/profile.d/92-shell-forge.sh`. If you clone the repo
+somewhere else, set `FORGE_BOOTSTRAP_HOME` in
+`~/profile.d/92-shell-forge.sh`.
+
+## Refresh global tooling
+
+Use the default update command to keep Homebrew packages, Node LTS versions,
+bun, bun-managed global CLIs, and uv-managed tools current:
 
 ```bash
 forge-bootstrap home-update defaults
 ```
 
-### Test
+This runs the update path defined in `maskfile.md`:
 
-```bash
-fnm ls
-forge --version
-```
+- `home-update brew`
+- `home-update node-lts`
+- `home-update bun`
+- `home-update bun-global`
+- `home-update uv-tool`
 
-## 7. Forge Login
+## Forge login
 
-[Obtain an API Token and use it to login to Forge](https://developer.atlassian.com/platform/forge/getting-started/#log-in-with-an-atlassian-api-token).
+Create an Atlassian API token, then log in with the Forge CLI:
 
 ```bash
 forge login
-```
-
-### Test
-
-```bash
 forge whoami
 ```
 
-## 8. Install VS Code
+If interactive login does not work, uncomment and set the Forge environment
+variables in `~/profile.d/92-shell-forge.sh`:
 
-```bash
-brew install visual-studio-code
-```
-
-### Test
-
-```bash
-cd $HOME/dev/git/github.com/ibuchanan/forge-bootstrap
-code .
-```
-
-## 9. Other configuration
-
-After the Bootstrapping step,
-the home directory should have a `profile.d` subdirectory.
-The headers below explain where some additional configuration may be necessary
-if defaults above do not work.
-
-### 10-env-vars.sh
-
-Set the following variables:
-
-```bash
-export GITHUB_USER=""
-export EMAIL=""
-export NAME=""
-```
-
-### 92-shell-forge.sh
-
-If `forge login` does not work,
-uncomment and set the following variables:
 ```bash
 export FORGE_EMAIL=""
 export FORGE_API_TOKEN=""
 ```
 
-If the git repo was cloned into a different path,
-set the following variable in `~/profile.d/92-shell-forge`:
+## Create and initialize a Forge/Rovo project
+
+Create a Forge app with the standard Forge CLI:
+
 ```bash
-export FORGE_BOOTSTRAP_HOME="$HOME/dev/git/github.com/ibuchanan/forge-bootstrap"
+forge create
 ```
 
-## 10. Forge away!
-
-You will need a site as a development environment.
-For Atlassians,
-a [One Atlassian](https://hello.atlassian.net/wiki/spaces/ONEATLAS/overview)
-environment is a good start because it has existing data.
-Use [go/one-atlas-request](http://go.atlassian.com/one-atlas-request)
-to provision one automatically.
-Alternatively,
-use [go/cloud-dev](http://go.atlassian.com/cloud-dev).
-
-To start learning about Forge,
-make the [Forge Quest](https://developer.atlassian.com/platform/tool/forge-quest/forge-novice/about-forge/).
-
-## 11. Standard configuration for new Forge Rovo projects
-
-Create new apps with the standard [`forge create`](https://developer.atlassian.com/platform/forge/cli-reference/create/) command.
-Then layer the following into the project:
-* biome: a tool for linting & formatting
-* changelog: use the conventional commit notation and `git-cliff` to help manage versions
-* format-forge: order keys in the manifest for better walk-through explanation
-* gitignore: expand files & directories that will be ignored by git
-* oss: add Atlassian open-source boilerplate
-* package: set better defaults in the `package.json`
-* rovo: move the prompt module into a file
-* typescript: initialize TypeScript for the project
-
-For more details on all these options,
-see the `maskfile.md`.
-Feel free to apply configuration more selectively.
+Then apply the default repo initialization from inside the new app directory:
 
 ```bash
 forge-bootstrap repo-init defaults
 ```
 
-### Test
+The default init layers in common repository files and project conventions,
+including:
+
+- expanded `.gitignore` entries
+- Atlassian OSS boilerplate
+- changelog configuration
+- `package.json` defaults and common scripts
+- TypeScript configuration
+- AI-agent instructions and Forge CLI skill guidance
+- Forge test helpers
+- manifest formatting and Node runtime pinning
+
+For optional init commands such as Biome, promptfoo, Rovo prompt extraction,
+and trigger helpers, see `maskfile.md`.
+
+Verify a generated Forge project with:
 
 ```bash
 forge lint
 ```
 
+## Common workflows
 
-## 12. Keeping up with changes
-
-From time to time,
-keep the environment configured with latest versions of the tooling.
-
-### Update the forge-bootstrap repo
+### Update this repo
 
 ```bash
-cd $FORGE_BOOTSTRAP_HOME
+cd "$FORGE_BOOTSTRAP_HOME"
 git pull
-```
-
-### Test
-
-```bash
 forge-bootstrap --version
 ```
 
-### Update the home directory tooling
+### Install or update global JavaScript CLIs
 
-Upgrades Brew packages,
-installs latest LTS versions of Node,
-and makes sure global Node libs,
-including Forge,
-are up-to-date.
+Global JavaScript CLIs should be managed by bun, not npm-global:
 
 ```bash
-forge-bootstrap home-update defaults
+forge-bootstrap home-init bun-global
+forge-bootstrap home-update bun-global
 ```
 
-### Test
+### Update uv-managed tools
 
 ```bash
-node --version
-forge --version
+forge-bootstrap home-update uv-tool
 ```
+
+## Important files
+
+- `maskfile.md` — command reference and implementation for home and repo setup.
+- `src/home-init/shell/profile.d/` — shell snippets copied into `~/profile.d`.
+- `src/repo-init/` — files copied into generated Forge/Rovo projects.
+- `.devcontainer/devcontainer.json` — development container bootstrap.
+
+## Notes and caveats
+
+- The bootstrap command replaces your interactive shell profile after backing up
+  the existing file.
+- Forge project package scripts may still use `npm run` because Forge templates
+  and many Node projects continue to expose npm-compatible scripts. That is
+  separate from global CLI installation, which is now bun-managed.
+- `home-init bun` and `home-init uv` use the official curl-to-shell installers
+  documented by those projects.

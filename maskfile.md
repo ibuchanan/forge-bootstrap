@@ -43,73 +43,35 @@ if [[ -f "$HOME/$SHELL_PROFILE_INTERACTIVE" ]]; then
 fi
 ```
 
-### home-init npm-global
+### home-init bun-global
 
-> Setup home directory for managing global npm packages
+> Install global CLI tools with `bun`
 
-Better installs than `npm install -g`
-because "global" here persists across managed node versions.
+Uses `bun add --global` so the CLIs persist across managed node versions
+and live under `$HOME/.bun/bin` (added to `PATH` in `10-env-bin.sh`).
+Requires `home-init bun` to have been run first.
 The libraries we use are:
 * [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
-* [`corepack`](https://github.com/nodejs/corepack): Zero-runtime-dependency package acting as bridge between Node projects and their package managers
 * [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
 * [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
 * [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
 * [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
 * [`turbo`](https://turborepo.com/): the build system for JavaScript and TypeScript codebases (esp monorepos)
 * [`vskill`](https://verified-skill.com/): a package manager & builder for securing the AI skills supply chain
-* [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
 
-Note: `yarn` is used in many Atlassian internal repos and even in some public examples
-(out of habit).
-To install `yarn`, use `yarn set version stable` via `corepack`.
-Then use `yarn init -2` to setup a new repo.
-We prefer `npm` for customer-facing repos
-because it's 1 less thing for new Node developers to learn.
-
-```sh
-eval "$(fnm env --use-on-cd)"
-fnm install --lts
-fnm use default
-# Path set in 10-env-bin.sh
-mkdir "$HOME/npm-global"
-cd "$HOME/npm-global"
-node --version > .nvmrc
-npm init --yes
-tmp=$(mktemp) && \
-  jq \
-    '.name |= "npm-global" | .version |= "0.0.0" | .license |= "Apache-2.0" | .private |= true' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-tmp=$(mktemp) && \
-  jq \
-    '.description |= "A better way to manage global package that supports node version switching"' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-tmp=$(mktemp) && \
-  jq \
-    '.scripts = {}' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-tmp=$(mktemp) && \
-  jq \
-    '.dependencies += {
-      "@forge/cli":"*",
-      "corepack":"*",
-      "knip":"*",
-      "promptfoo":"*",
-      "sort-package-json":"*",
-      "tsx":"*",
-      "turbo":"*",
-      "vskill":"*"
-      }' \
-    package.json \
-    > "$tmp" && \
-  mv "$tmp" package.json
-npm install
+```bash
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+bun_globals=(
+  @forge/cli
+  knip
+  promptfoo
+  sort-package-json
+  tsx
+  turbo
+  vskill
+)
+bun add --global ${bun_globals[@]}
 ```
 
 ### home-init bin
@@ -148,7 +110,18 @@ Uses the official `curl`-to-shell install method documented at
 [bun.sh/docs/installation](https://bun.sh/docs/installation).
 
 ```bash
-curl -fsSL https://bun.sh/install | bash
+curl -fsSL https://bun.com/install | bash
+```
+
+### home-init uv
+
+> Install [`uv`](https://docs.astral.sh/uv/) via the official install script
+
+Uses the official `curl`-to-shell install method documented at
+[docs.astral.sh/uv/getting-started/installation](https://docs.astral.sh/uv/getting-started/installation/).
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 
@@ -165,10 +138,12 @@ echo "home-update brew"
 $MASK home-update brew
 echo "home-update node-lts"
 $MASK home-update node-lts
-echo "home-update npm-global"
-$MASK home-update npm-global
 echo "home-update bun"
 $MASK home-update bun
+echo "home-update bun-global"
+$MASK home-update bun-global
+echo "home-update uv-tool"
+$MASK home-update uv-tool
 ```
 
 ### home-update prereq
@@ -223,50 +198,32 @@ fnm default lts/krypton
 fnm use default
 ```
 
-### home-update npm-global
+### home-update bun-global
 
-> Update libraries and versions of npm global packages in npm-global
+> Update versions of global CLIs installed via `bun`
 
-The libraries we use are:
-* [`@forge/cli`](https://developer.atlassian.com/platform/forge/cli-reference/)
-* [`corepack`](https://github.com/nodejs/corepack): Zero-runtime-dependency package acting as bridge between Node projects and their package managers
-* [`knip`](https://knip.dev/): find & remove unused npm libraries from repos
-* [`promptfoo`](https://www.promptfoo.dev/): test/evaluate prompts
-* [`sort-package-json`](https://github.com/keithamus/sort-package-json#readme): sort keys in the package.json
-* [`tsx`](https://tsx.is/): run TypeScript code without configuration or compilation
-* [`turbo`](https://turborepo.com/): the build system for JavaScript and TypeScript codebases (esp monorepos)
-* [`vskill`](https://verified-skill.com/): a package manager & builder for securing the AI skills supply chain
-* [`yarn`](https://yarnpkg.com/): a package manager used by many Atlassian repos
-
-Note: `yarn` is used in many Atlassian internal repos and even in some public examples
-(out of habit).
-To install `yarn`, use `yarn set version stable` via `corepack`.
-Then use `yarn init -2` to setup a new repo.
-We prefer `npm` for customer-facing repos
-because it's 1 less thing for new Node developers to learn.
+Ensures every CLI in the canonical list is installed,
+then upgrades all globally installed packages.
+See `home-init bun-global` for the rationale and library descriptions.
 
 ```bash
-cd "$HOME/npm-global"
-npm_globals=(
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+bun_globals=(
+  @biomejs/biome
   @forge/cli
-  corepack
+  cspell
+  ctx7
   knip
+  license-checker-evergreen
+  markdownlint-cli2
   promptfoo
   sort-package-json
-  tsx
   turbo
   vskill
 )
-for lib in "${npm_globals[@]}"; do
-  tmp=$(mktemp) && \
-    jq \
-      --arg lib "$lib" \
-      '.dependencies += { $lib:"*" }' \
-      package.json \
-      > "$tmp" && \
-    mv "$tmp" package.json
-done
-npm update
+bun add --global ${bun_globals[@]}
+bun update --global
 ```
 
 ### home-update bun
@@ -278,6 +235,14 @@ See `home-init bun` for the initial install.
 
 ```bash
 bun upgrade
+```
+
+### home-update uv-tool
+
+> Upgrade all tools installed via [`uv tool`](https://docs.astral.sh/uv/concepts/tools/)
+
+```bash
+uv tool upgrade --all
 ```
 
 ### home-update rovo-dev
@@ -493,7 +458,6 @@ gitignore=(
   windows
   node
   turbo
-  yarn
 )
 query=$(IFS=, ; echo "${gitignore[*]}")
 curl \
